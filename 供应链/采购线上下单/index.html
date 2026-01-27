@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1688线上下单</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0E2B8A',
+                        light: '#F5F7FA',
+                        dark: '#1D2129',
+                        gray: '#86909C'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .collapse-item {
+                border-bottom: 1px solid #E5E6EB;
+            }
+            .collapse-header.active + .collapse-content {
+                max-height: 1000px;
+                opacity: 1;
+            }
+            .collapse-content {
+                max-height: 0;
+                opacity: 0;
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen py-8 px-4 md:px-8 lg:px-16">
+    <!-- 页面头部 -->
+    <header class="text-center mb-12">
+        <h1 class="text-[clamp(24px,4vw,36px)] font-bold text-secondary mb-4 flex items-center justify-center">
+            <i class="fa fa-cogs mr-3 text-primary text-3xl"></i>
+            1688线上下单
+        </h1>
+        <p class="text-gray text-lg max-w-3xl mx-auto">供应链批量采购RPA自动化方案 | 模块化设计 · 精准匹配 · 高效下单</p>
+    </header>
+
+    <main class="max-w-4xl mx-auto space-y-8">
+        <!-- 业务背景 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-briefcase text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">一、业务背景</h2>
+            </div>
+            <div class="pl-14 text-base leading-relaxed">
+                <p>供应链部门需对SKU进行<b>批量采购下单</b>，下单时需将采购备注中的配送信息与1688下单界面的收货地址匹配并选中，地址无误后完成下单。</p>
+                <p class="mt-2">批量采购场景下人工处理耗时久、效率低，因此需通过<b>模块化流程自动化</b>，减少人工操作、提升下单效率、确保数据准确性、降低出错率。</p>
+            </div>
+        </section>
+
+        <!-- 功能模块 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-puzzle-piece text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">二、功能模块</h2>
+            </div>
+            <div class="pl-14 space-y-4">
+                <!-- 折叠面板：功能模块1-5 -->
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">1. 登录马帮ERP系统</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-2 text-gray">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>打开浏览器访问马帮ERP系统：<a href="https://www.mabangerp.com/index.htm" class="text-primary underline" target="_blank">https://www.mabangerp.com/index.htm</a></li>
+                            <li>输入《配置文件.xlsx》中的账号密码完成登录</li>
+                            <li>登录失败时读取重试次数限制，仍无法登录则报错并同步至钉钉</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">2. 导入批量采购模板</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-2 text-gray">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>进入系统路径：供应链 → 采购计划 → 添加/导入/导出</li>
+                            <li>选择「采购商品导入」，上传采购文件（如《xxxx.xx.xx采购计划导入(一仓）.xlsx》）</li>
+                            <li>导入失败则流程停止并通知钉钉</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">3. 生成采购单</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-2 text-gray">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>选择「未采购」状态的商品，全选后点击「生成采购单」</li>
+                            <li>提交订单，并跳转至采购列表查看生成结果</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">4. 1688下单处理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-2 text-gray">
+                        <div class="font-normal text-dark mb-2">情况1：采购备注中无配送信息或无法匹配</div>
+                        <ul class="list-disc pl-5 space-y-1 mb-3">
+                            <li>跳过该记录，将「采购记录为空」或「配送信息匹配失败」写入回执文件</li>
+                        </ul>
+                        <div class="font-normal text-dark mb-2">情况2：采购备注中有配送信息且匹配成功</div>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>复制配送信息至订单备注</li>
+                            <li>自动匹配1688收货地址，匹配失败则取消交易，继续处理下一条</li>
+                            <li>设置订单参数：红包抵扣为「否」，订单类型为「批发价订单」，交易方式默认「账期交易」，非账期交易则使用「诚E赊」</li>
+                            <li>确认下单，并将下单状态写入回执文件</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">5. 回执文件生成</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-2 text-gray">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>下单完成后自动生成回执文件</li>
+                            <li>记录每条SKU的下单状态及失败原因（如「采购记录为空」、「配送信息匹配失败」等），用于后续人工核对</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">三、异常处理机制</h2>
+            </div>
+            <div class="pl-14 grid md:grid-cols-2 gap-4">
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-sign-in mr-2 text-primary"></i>1. 登录失败处理
+                    </h3>
+                    <ul class="list-disc pl-5 text-gray text-sm space-y-1">
+                        <li>读取《配置文件.xlsx》中的重试次数限制</li>
+                        <li>重试次数内仍失败则流程停止，错误信息同步至钉钉</li>
+                    </ul>
+                </div>
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-file-excel-o mr-2 text-primary"></i>2. 导入采购文件失败
+                    </h3>
+                    <ul class="list-disc pl-5 text-gray text-sm space-y-1">
+                        <li>采购文件导入失败则流程立即停止</li>
+                        <li>失败信息同步至钉钉通知相关负责人</li>
+                    </ul>
+                </div>
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-sticky-note-o mr-2 text-primary"></i>3. 采购备注信息异常
+                    </h3>
+                    <ul class="list-disc pl-5 text-gray text-sm space-y-1">
+                        <li>备注为空或无法匹配配送信息，直接跳过该条记录</li>
+                        <li>回执文件中标记对应失败原因</li>
+                    </ul>
+                </div>
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-shopping-cart mr-2 text-primary"></i>4. 1688下单失败
+                    </h3>
+                    <ul class="list-disc pl-5 text-gray text-sm space-y-1">
+                        <li>收货地址与配送信息不匹配，自动取消交易</li>
+                        <li>不执行下单操作，继续处理下一条记录</li>
+                        <li>将「地址匹配失败」写入回执文件</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">四、数据传输规范</h2>
+            </div>
+            <div class="pl-14 space-y-6">
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-arrow-right mr-2 text-primary"></i>1. 运行输入</h3>
+                    <p class="text-gray pl-2">采购计划文件路径（如：《xxxx.xx.xx采购计划导入(一仓）.xlsx》）</p>
+                </div>
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-arrow-left mr-2 text-primary"></i>2. 运行输出</h3>
+                    <ul class="list-disc pl-5 text-gray space-y-2">
+                        <li>回执文件：记录每条SKU的下单状态及失败原因</li>
+                        <li>钉钉消息通知：将流程运行记录发送至指定联系人/群聊</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-file-text-o mr-2 text-primary"></i>3. 数据格式规范</h3>
+                    <ul class="list-disc pl-5 text-gray space-y-3">
+                        <li>采购计划文件：Excel格式（.xlsx）</li>
+                        <li>回执文件：Excel格式（.xlsx），包含以下列：
+                            <ul class="list-circle pl-6 mt-2 space-y-1">
+                                <li>SKU编号</li>
+                                <li>是否下单成功（「是」或「否」）</li>
+                                <li>失败原因（如「采购记录为空」、「配送信息匹配失败」等）</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 系统依赖 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-server text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">五、系统依赖</h2>
+            </div>
+            <div class="pl-14 overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primary/5 text-left">
+                            <th class="p-3 border border-gray/20 rounded-tl-lg">系统名称</th>
+                            <th class="p-3 border border-gray/20">类型</th>
+                            <th class="p-3 border border-gray/20">是否有账号密码</th>
+                            <th class="p-3 border border-gray/20">验证码类型</th>
+                            <th class="p-3 border border-gray/20">最近是否有升级计划</th>
+                            <th class="p-3 border border-gray/20 rounded-tr-lg">备注说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-light transition-colors">
+                            <td class="p-3 border border-gray/20">马帮ERP</td>
+                            <td class="p-3 border border-gray/20">浏览器网页</td>
+                            <td class="p-3 border border-gray/20">是</td>
+                            <td class="p-3 border border-gray/20">无</td>
+                            <td class="p-3 border border-gray/20">否</td>
+                            <td class="p-3 border border-gray/20">用于导入采购模板、生成采购单、1688下单操作</td>
+                        </tr>
+                        <tr class="hover:bg-light transition-colors">
+                            <td class="p-3 border border-gray/20">WPS（Excel）</td>
+                            <td class="p-3 border border-gray/20">客户端</td>
+                            <td class="p-3 border border-gray/20">否</td>
+                            <td class="p-3 border border-gray/20">无</td>
+                            <td class="p-3 border border-gray/20">否</td>
+                            <td class="p-3 border border-gray/20">用于读取采购计划文件及生成回执文件</td>
+                        </tr>
+                        <tr class="hover:bg-light transition-colors">
+                            <td class="p-3 border border-gray/20 rounded-bl-lg">钉钉</td>
+                            <td class="p-3 border border-gray/20">客户端</td>
+                            <td class="p-3 border border-gray/20">否</td>
+                            <td class="p-3 border border-gray/20">无</td>
+                            <td class="p-3 border border-gray/20">否</td>
+                            <td class="p-3 border border-gray/20 rounded-br-lg">用于流程异常通知及运行记录发送</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页面底部 -->
+    <footer class="max-w-4xl mx-auto mt-12 text-center text-gray text-sm">
+        <p>© 2025 供应链RPA自动化项目 | 马帮ERP-采购管理-1688下单</p>
+    </footer>
+
+    <script>
+        // 折叠面板箭头旋转
+        const collapseHeads = document.querySelectorAll('.collapse-header');
+        collapseHeads.forEach(head => {
+            head.addEventListener('click', () => {
+                const icon = head.querySelector('i');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+    </script>
+</body>
+</html>
