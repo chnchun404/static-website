@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>泰国-唛头</title>
+    <title>印尼-唛头</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -40,10 +40,11 @@
             .collapse-item {
                 border-bottom: 1px solid theme('colors.grayBorder');
             }
-            /* 折叠面板核心样式（修复联动逻辑） */
+            /* 折叠面板核心样式（修复所有交互问题） */
             .collapse-header {
                 cursor: pointer;
                 transition: all 0.2s ease;
+                width: 100%; /* 确保点击区域全覆盖 */
             }
             .collapse-content {
                 max-height: 0;
@@ -58,10 +59,11 @@
                 opacity: 1;
                 padding-top: 1rem;
             }
-            /* 折叠图标旋转动画（优化过渡） */
+            /* 折叠图标旋转动画（确保生效） */
             .collapse-header .fa-chevron-down {
                 transition: transform 0.3s ease-in-out;
-                display: inline-block; /* 确保旋转生效 */
+                display: inline-block;
+                vertical-align: middle; /* 对齐图标 */
             }
             .collapse-header.active .fa-chevron-down {
                 transform: rotate(180deg);
@@ -94,10 +96,10 @@
     <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
         <div class="max-w-4xl mx-auto text-center">
             <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
-                泰国_唛头自动化流程
+                印尼_唛头自动化处理流程
             </h1>
             <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
-                采购单解析 · 模板写入 · 标签下载 · 微信发送 · 订单备注标记 | 替代人工操作，提升效率与准确性
+                采购单解析 · 模板写入 · 标签下载 · 微信发送 · 订单备注标记 | 替代人工操作，提升跨境采购流程效率与准确性
             </p>
         </div>
     </header>
@@ -114,8 +116,8 @@
             <!-- 实施目的 -->
             <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
                 <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
-                <p>供应链部门需处理泰国站点2仓/5仓/6仓采购单，解析采购备注中的仓库、物流方式（陆运/海运）、装箱数量等信息，完成模板写入、截图、标签/箱标PDF下载、微信发送至对应供应商群、订单备注标记“已给”等操作。</p>
-                <p class="mt-2">人工处理上述流程繁琐且易出错，通过<b class="text-primary">全流程自动化设计</b>，解决人工操作痛点，提升处理效率与数据准确性。</p>
+                <p>供应链部门需处理印尼站点三仓采购单，解析采购/订单备注中的仓库类型（三仓）、装箱数量等信息，完成模板写入、截图、库存SKU标签PDF下载、微信发送至对应供应商群、订单备注标记“已给”等操作。</p>
+                <p class="mt-2">人工处理上述流程繁琐且易出错，通过<b class="text-primary">全流程自动化设计</b>，解决人工操作痛点，提升采购单处理效率与数据准确性。</p>
             </div>
             <!-- 基本信息 -->
             <div class="pl-12 overflow-x-auto">
@@ -131,7 +133,7 @@
                     </thead>
                     <tbody>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">泰国采购单自动化处理（1/2/5仓）</td>
+                            <td class="p-3 border border-grayBorder">海仓_马帮ERP-采购管理-采购信息同步至卖头方-印尼</td>
                             <td class="p-3 border border-grayBorder">供应链</td>
                             <td class="p-3 border border-grayBorder">按需执行（定时/手动触发）</td>
                             <td class="p-3 border border-grayBorder">自动化：3~5分钟/条（人工：15+分钟/条）</td>
@@ -169,11 +171,6 @@
                                 <td class="p-3 border border-grayBorder">Yes</td>
                             </tr>
                             <tr class="table-hover-row hover:bg-primaryLight/50">
-                                <td class="p-3 border border-grayBorder">海仓国际</td>
-                                <td class="p-3 border border-grayBorder">浏览器网页</td>
-                                <td class="p-3 border border-grayBorder">Yes</td>
-                            </tr>
-                            <tr class="table-hover-row hover:bg-primaryLight/50">
                                 <td class="p-3 border border-grayBorder">WPS（Word/Excel）</td>
                                 <td class="p-3 border border-grayBorder">客户端</td>
                                 <td class="p-3 border border-grayBorder">无</td>
@@ -203,16 +200,16 @@
                             <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">采购单备注解析（仓库/物流/箱数）</td>
+                            <td class="p-3 border border-grayBorder">采购单备注解析（仓库/装箱规格）</td>
                             <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">海仓国际登录与商品标签下载</td>
-                            <td class="p-3 border border-grayBorder">海仓国际</td>
+                            <td class="p-3 border border-grayBorder">库存SKU标签PDF下载</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">海仓入库订单创建与箱标PDF下载</td>
-                            <td class="p-3 border border-grayBorder">海仓国际</td>
+                            <td class="p-3 border border-grayBorder">三仓调拨批次号生成</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
                             <td class="p-3 border border-grayBorder">Word模板写入与截图</td>
@@ -259,8 +256,8 @@
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>登录前校验当前登录用户，不一致则退出重新登录</li>
-                                <li>登录失败触发重试机制（次数由retry_times控制），每次失败记录日志</li>
+                                <li>登录前校验当前用户，与目标用户（唐雨春）不一致则退出重登</li>
+                                <li>登录失败触发重试（次数由retry_times控制），每次失败记录日志</li>
                                 <li>页面加载超时（300秒）则判定登录失败，抛出异常</li>
                                 <li>登录超时后重新创建浏览器窗口，最大化加载页面</li>
                             </ul>
@@ -279,51 +276,51 @@
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
                                 <li>单条采购单包含多个SKU则标记失败，跳过处理</li>
-                                <li>采购备注/订单备注无仓库信息则标记失败，记录原因</li>
-                                <li>备注中无物流方式（陆运/海运）则默认填充“海运”</li>
-                                <li>无法解析箱数/数量则标记失败，需人工确认</li>
+                                <li>采购/订单备注无任何信息则标记失败，记录原因</li>
+                                <li>无法解析装箱规格/箱数则标记失败，需人工确认</li>
                                 <li>非整箱（箱数为小数）则跳过处理，标记失败</li>
                                 <li>采购数量小于装箱规格则标记失败，需人工确认</li>
+                                <li>备注不含“中印/天牛”关键词或含“已给”则跳过处理</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤3：海仓国际登录与标签下载 -->
+                <!-- 步骤3：库存SKU标签下载 -->
                 <div class="collapse-item py-2">
                     <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：海仓国际登录与标签下载</span>
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：库存SKU标签PDF下载</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>海仓登录超时（300秒）则触发重试，最多重试10次（每次间隔60秒）</li>
-                                <li>商品资料库未找到对应SKU则标记失败，需人工维护</li>
-                                <li>标签PDF下载超时（800秒）则重试，失败则标记异常</li>
+                                <li>马帮库存SKU库未找到对应SKU则标记失败，需人工维护</li>
+                                <li>标签PDF下载超时（最多重试4次）则标记异常</li>
                                 <li>本地标签文件已存在则跳过下载，直接使用现有文件</li>
-                                <li>打印窗口未弹出则重试点击，失败则抛出异常</li>
+                                <li>打印窗口未弹出则重试操作，失败则抛出异常</li>
+                                <li>搜索SKU窗口加载超时（30秒）则关闭窗口，标记失败</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤4：箱标生成与PDF下载 -->
+                <!-- 步骤4：调拨批次号生成 -->
                 <div class="collapse-item py-2">
                     <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：入库订单创建与箱标PDF下载</span>
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：三仓调拨批次号生成</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>入库订单创建时未找到SKU则关闭弹窗，标记失败</li>
-                                <li>箱标PDF下载失败则触发二次重试，仍失败则标记异常</li>
-                                <li>入库订单搜索结果为空则标记失败，需人工确认</li>
-                                <li>打印窗口加载超时（30秒）则抛出异常</li>
-                                <li>海仓系统维护导致页面无法访问则跳过，记录日志</li>
+                                <li>分仓调拨页面加载超时（300秒）则抛出异常</li>
+                                <li>查询SKU无数据则关闭窗口，标记失败</li>
+                                <li>未找到名称匹配的SKU则关闭窗口，标记失败</li>
+                                <li>添加SKU到调拨单失败则标记异常，需人工确认</li>
+                                <li>批次号获取失败则关闭页面，标记异常</li>
                             </ul>
                         </div>
                     </div>
@@ -339,10 +336,11 @@
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>Word模板打开失败则重试（最多10次），失败则标记异常</li>
+                                <li>Word模板打开失败（最多重试10次）则标记异常</li>
                                 <li>截图保存到本地失败则关闭Word，标记失败</li>
                                 <li>模板写入时字体/格式设置失败则记录日志，继续执行</li>
-                                <li>截图区域定位错误则调整坐标，重试截图</li>
+                                <li>截图区域定位错误则直接抛出异常</li>
+                                <li>WPS进程未正常关闭则强制结束进程</li>
                             </ul>
                         </div>
                     </div>
@@ -412,11 +410,10 @@
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>仓库解析：匹配备注中“1仓/一仓/2仓/二仓/5仓/五仓”关键词，无则标记失败</li>
-                                <li>物流方式解析：优先匹配“陆运/海运”，无则默认填充“海运”</li>
-                                <li>箱数解析：正则匹配“X箱陆运/X箱海运”或“陆运X箱/海运X箱”，提取箱数</li>
-                                <li>数量解析：采购数量 ÷ 箱数 = 每箱数量，非整数则标记失败</li>
-                                <li>多物流方式解析：陆运+海运数量需等于采购总数量，否则标记失败</li>
+                                <li>仓库解析：固定匹配“3仓/三仓”，仅处理印尼三仓采购单</li>
+                                <li>装箱规格解析：正则匹配“X箱/箱规X”格式内容，提取装箱规格</li>
+                                <li>箱数解析：采购数量 ÷ 装箱规格 = 总箱数，非整数则标记失败</li>
+                                <li>关键词过滤：仅处理含“中印/天牛”且不含“已给”的采购单</li>
                             </ol>
                         </div>
                     </div>
@@ -432,12 +429,8 @@
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
                                 <li>模板清空：先清空原有内容，重置字体为微软雅黑、36磅、加粗、居中</li>
-                                <li>SKU写入：去除前缀“QM_”后写入，格式为“SKU:XXX”</li>
-                                <li>数量写入：格式为“数量:XXX”（每箱数量）</li>
-                                <li>箱数写入：格式为“共XXX箱”</li>
-                                <li>仓库编码写入：1仓=XN-CSD2116、2仓=CSD1096、5仓=CSD9966</li>
-                                <li>物流方式写入：格式为“陆运/海运”</li>
-                                <li>采购单号写入：格式为“采购单号:XXX”</li>
+                                <li>中印模板内容：调拨批次号、SKU、每箱数量、总箱数、CNID-XNKJ、采购单号、XN-003</li>
+                                <li>天牛模板内容：调拨批次号、SKU、每箱数量、总箱数、TN308、采购单号</li>
                             </ol>
                         </div>
                     </div>
@@ -452,11 +445,9 @@
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>标签PDF命名：产品标签{SKU}.pdf，存储到配置的QM_LABEL_FOLDER_PATH目录</li>
-                                <li>截图命名：{采购单号}_{物流方式}_{供应商}.png，存储到“截图与链接备份/时间/泰国/采购单号”目录</li>
-                                <li>箱标PDF命名：{海仓入库单号}.pdf，存储到“截图与链接备份/时间/泰国/采购单号”目录</li>
-                                <li>回执单命名：{时间戳}_回执单.xlsx，存储到“回执单”目录</li>
-                                <li>所有文件存储前先创建目录，确保路径存在</li>
+                                <li>库存SKU标签PDF：命名“产品标签{SKU}.pdf”，存储到ID_LABEL_FOLDER_PATH目录</li>
+                                <li>模板截图：命名“{采购单号}_{供应商}.png”，存储到“截图与链接备份/印尼/采购单号”目录</li>
+                                <li>回执单：命名“{时间戳}_回执单.xlsx”，存储到“回执单”目录</li>
                             </ol>
                         </div>
                     </div>
@@ -471,10 +462,9 @@
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>发送对象：供应商编码模板中匹配的对应微信群聊</li>
-                                <li>发送内容顺序：模板截图 → 箱标PDF → 标签PDF → 采购单号</li>
-                                <li>发送失败处理：文件备份到本地，标记需人工发送</li>
-                                <li>发送成功标记：回执单中“已发送到微信群聊”字段填充群聊名称</li>
+                                <li>发送对象：供应商编码模板匹配的对应微信群聊</li>
+                                <li>发送顺序：模板截图 → 标签PDF → 采购单号</li>
+                                <li>发送失败：文件备份到本地，回执单标记“需人工发送”</li>
                             </ol>
                         </div>
                     </div>
@@ -489,28 +479,9 @@
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>回执单字段：采购单号、库存SKU、供应商、站点、运输方式、模板是否重新写入、是否成功截图、箱标PDF是否下载、标签PDF是否下载、已发送到微信群聊、是否登记为已给、状态、失败原因</li>
-                                <li>状态值：成功/失败（失败需填充失败原因）</li>
-                                <li>存储位置：回执单目录 + 备份到截图与链接备份目录</li>
-                                <li>编码格式：UTF-8，无索引列，字段顺序固定</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 规则6：订单备注标记规范 -->
-                <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：订单备注标记规范</span>
-                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
-                    </div>
-                    <div class="collapse-content pl-2 text-gray">
-                        <div class="step-card">
-                            <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>标记前校验：判断订单备注是否已包含“已给”标识，避免重复标记</li>
-                                <li>标记操作：在马帮ERP订单详情页备注栏输入“已给”，保存更改</li>
-                                <li>标记验证：检查备注栏是否成功更新，确保标记有效</li>
-                                <li>异常处理：若标记失败则记录日志，需人工干预处理</li>
+                                <li>字段：采购单号、库存SKU、供应商、站点、运输方式、模板是否重新写入、是否成功截图、标签PDF是否下载、已发送到微信群聊、是否登记为已给、状态、失败原因</li>
+                                <li>状态值：成功/失败（失败需填充具体原因）</li>
+                                <li>存储：回执单目录 + 备份到截图与链接备份目录</li>
                             </ol>
                         </div>
                     </div>
@@ -518,131 +489,32 @@
             </div>
         </section>
 
-        <!-- 板块5：流程监控与日志 -->
+        <!-- 板块5：系统依赖 -->
         <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
             <div class="flex items-center mb-4">
                 <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-                    <i class="fa fa-line-chart text-primary"></i>
+                    <i class="fa fa-cogs text-primary"></i>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、流程监控与日志</h2>
-            </div>
-            <div class="pl-12 overflow-x-auto">
-                <table class="w-full border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-primaryLight text-left">
-                            <th class="p-3 border border-grayBorder font-medium text-primary">监控指标</th>
-                            <th class="p-3 border border-grayBorder font-medium text-primary">阈值标准</th>
-                            <th class="p-3 border border-grayBorder font-medium text-primary">监控方式</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">流程成功率</td>
-                            <td class="p-3 border border-grayBorder">≥95%</td>
-                            <td class="p-3 border border-grayBorder">实时统计成功/失败订单比例</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">单次处理时长</td>
-                            <td class="p-3 border border-grayBorder">≤5分钟</td>
-                            <td class="p-3 border border-grayBorder">计时器记录每个订单处理时间</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">异常捕获率</td>
-                            <td class="p-3 border border-grayBorder">100%</td>
-                            <td class="p-3 border border-grayBorder">系统日志记录所有异常情况</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">文件传输成功率</td>
-                            <td class="p-3 border border-grayBorder">≥98%</td>
-                            <td class="p-3 border border-grayBorder">校验文件大小与完整性</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- 板块6：维护与升级 -->
-        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
-            <div class="flex items-center mb-4">
-                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-                    <i class="fa fa-cog text-primary"></i>
-                </div>
-                <h2 class="text-xl sm:text-2xl font-semibold text-dark">六、维护与升级</h2>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
             </div>
             <div class="pl-12 space-y-4">
-                <div>
-                    <h3 class="font-medium text-dark mb-2">6.1 定期维护计划</h3>
-                    <ul class="list-disc pl-6 space-y-1 text-sm text-gray">
-                        <li>每周检查系统运行日志，分析异常情况并优化处理逻辑</li>
-                        <li>每月更新供应商群聊信息，确保微信发送功能正常</li>
-                        <li>每季度评估系统性能，根据业务增长调整资源配置</li>
-                        <li>每年进行系统重构，引入新技术提升稳定性与效率</li>
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.1 基础环境</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>操作系统：Windows（依赖win32系列库）</li>
+                        <li>编程语言：Python 3.x</li>
                     </ul>
                 </div>
-                <div>
-                    <h3 class="font-medium text-dark mb-2">6.2 升级策略</h3>
-                    <ul class="list-disc pl-6 space-y-1 text-sm text-gray">
-                        <li>采用灰度发布策略，先在少量订单上验证新功能</li>
-                        <li>保留历史版本回滚能力，确保升级失败时快速恢复</li>
-                        <li>新增功能需经过充分测试，确保不影响现有流程</li>
-                        <li>升级前后通知相关业务人员，做好协调配合</li>
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.2 核心Python库</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>自动化类：xbot（网页/客户端自动化）、pyautogui（截图/键鼠模拟）、win32com（WPS操作）</li>
+                        <li>数据处理类：pandas（Excel回执单生成）、re（备注正则解析）</li>
+                        <li>文件处理类：docx（Word模板操作）、PIL（截图处理）、os/shutil（文件/目录管理）</li>
+                        <li>日志类：xbot.app.logging（流程日志记录）</li>
                     </ul>
                 </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="py-6 text-center text-gray text-sm">
-        <p>© 2023 供应链自动化项目组 | 泰国唛头自动化流程</p>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 为所有折叠面板头部添加点击事件
-            const headers = document.querySelectorAll('.collapse-header:not(#allCollapseBtn):not(#allCollapseBtn2)');
-            headers.forEach(header => {
-                header.addEventListener('click', function() {
-                    // 不包括"全部展开/收起"按钮
-                    if(this.id === 'allCollapseBtn' || this.id === 'allCollapseBtn2') return;
-                    
-                    this.classList.toggle('active');
-                });
-            });
-
-            // "全部展开/收起"按钮功能
-            const allBtn = document.getElementById('allCollapseBtn');
-            const allBtn2 = document.getElementById('allCollapseBtn2');
-            
-            allBtn?.addEventListener('click', function() {
-                const contents = document.querySelectorAll('#exception-section .collapse-content');
-                const headers = document.querySelectorAll('#exception-section .collapse-header:not(#allCollapseBtn)');
-                
-                const isAnyActive = Array.from(headers).some(header => header.classList.contains('active'));
-                
-                headers.forEach(header => {
-                    if(isAnyActive) {
-                        header.classList.remove('active');
-                    } else {
-                        header.classList.add('active');
-                    }
-                });
-            });
-            
-            allBtn2?.addEventListener('click', function() {
-                const contents = document.querySelectorAll('#data-section .collapse-content');
-                const headers = document.querySelectorAll('#data-section .collapse-header:not(#allCollapseBtn2)');
-                
-                const isAnyActive = Array.from(headers).some(header => header.classList.contains('active'));
-                
-                headers.forEach(header => {
-                    if(isAnyActive) {
-                        header.classList.remove('active');
-                    } else {
-                        header.classList.add('active');
-                    }
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.3 第三方系统</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>马帮ERP：https://www.mabangerp.com（采购
