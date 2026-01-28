@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>墨西哥_最新路由同步业务功能介绍</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0E2B8A',
+                        light: '#F5F7FA',
+                        dark: '#1D2129',
+                        gray: '#86909C'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .collapse-item {
+                border-bottom: 1px solid #E5E6EB;
+            }
+            .collapse-header.active + .collapse-content {
+                max-height: 1000px;
+                opacity: 1;
+            }
+            .collapse-content {
+                max-height: 0;
+                opacity: 0;
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen py-8 px-4 md:px-8 lg:px-16">
+    <!-- 页面头部 -->
+    <header class="text-center mb-12">
+        <h1 class="text-[clamp(24px,4vw,36px)] font-bold text-secondary mb-4 flex items-center justify-center">
+            <i class="fa fa-truck mr-3 text-primary text-3xl"></i>
+            墨西哥_最新路由同步业务功能介绍
+        </h1>
+        <p class="text-gray text-lg max-w-3xl mx-auto">海外仓调拨运单物流轨迹追踪自动化方案 | 智能路由 · 数据闭环 · 高效对接</p>
+    </header>
+
+    <main class="max-w-4xl mx-auto space-y-8">
+        <!-- 业务背景 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-briefcase text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">一、业务背景</h2>
+            </div>
+            <div class="pl-14 text-base leading-relaxed">
+                <p class="mb-3">针对墨西哥站点海外仓调拨运单的物流轨迹追踪需求，需通过自动化手段实现以下核心目标：</p>
+                <ul class="list-disc pl-5 text-gray space-y-2">
+                    <li>1. 自动化采集：从马帮ERP系统批量获取"墨西哥海外仓-待签收"状态的调拨运单</li>
+                    <li>2. 智能路由：根据运单号前缀（THZ/CLT/MDD）自动匹配对应物流平台</li>
+                    <li>3. 平台对接：与铁盒子（THZ）、凯乐通（CLT）、墨多多（MDD）三大物流平台进行数据交互</li>
+                    <li>4. 数据闭环：将获取的物流轨迹信息实时回写至马帮ERP系统备注字段</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 功能模块 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-puzzle-piece text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">二、功能模块</h2>
+            </div>
+            <div class="pl-14 space-y-4">
+                <!-- 2.1 系统对接模块 -->
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">1. 系统对接模块</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-4 text-gray">
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-primary/5 text-left">
+                                        <th class="p-3 border border-gray/20">平台类型</th>
+                                        <th class="p-3 border border-gray/20">对接方式</th>
+                                        <th class="p-3 border border-gray/20">认证方式</th>
+                                        <th class="p-3 border border-gray/20">数据交互方式</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="hover:bg-light transition-colors">
+                                        <td class="p-3 border border-gray/20">马帮ERP</td>
+                                        <td class="p-3 border border-gray/20">浏览器自动化</td>
+                                        <td class="p-3 border border-gray/20">账号密码</td>
+                                        <td class="p-3 border border-gray/20">运单号提取/备注写入</td>
+                                    </tr>
+                                    <tr class="hover:bg-light transition-colors">
+                                        <td class="p-3 border border-gray/20">铁盒子</td>
+                                        <td class="p-3 border border-gray/20">浏览器自动化</td>
+                                        <td class="p-3 border border-gray/20">账号密码</td>
+                                        <td class="p-3 border border-gray/20">路由信息查询</td>
+                                    </tr>
+                                    <tr class="hover:bg-light transition-colors">
+                                        <td class="p-3 border border-gray/20">凯乐通</td>
+                                        <td class="p-3 border border-gray/20">浏览器自动化</td>
+                                        <td class="p-3 border border-gray/20">账号密码</td>
+                                        <td class="p-3 border border-gray/20">轨迹信息获取</td>
+                                    </tr>
+                                    <tr class="hover:bg-light transition-colors">
+                                        <td class="p-3 border border-gray/20">墨多多</td>
+                                        <td class="p-3 border border-gray/20">浏览器自动化</td>
+                                        <td class="p-3 border border-gray/20">账号密码</td>
+                                        <td class="p-3 border border-gray/20">路由信息查询</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2.2 核心功能流程 -->
+                <div class="collapse-item">
+                    <div class="collapse-header flex justify-between items-center py-3 cursor-pointer" onclick="this.classList.toggle('active')">
+                        <span class="font-medium">2. 核心功能流程</span>
+                        <i class="fa fa-chevron-down text-xs text-gray transition-transform"></i>
+                    </div>
+                    <div class="collapse-content pl-2 py-4 text-gray space-y-6">
+                        <!-- (1) 运单采集 -->
+                        <div class="border-l-2 border-primary/30 pl-4 py-2">
+                            <h4 class="font-medium text-dark mb-3">(1) 运单采集</h4>
+                            <ul class="list-disc pl-8 space-y-2">
+                                <li>自动登录马帮ERP系统</li>
+                                <li>按条件筛选：
+                                    <ul class="list-circle pl-8 mt-1 space-y-1">
+                                        <li>仓库路径：仓库→分仓调拨→分仓调拨发货</li>
+                                        <li>筛选条件：状态=待签收，目标仓库=墨西哥海外仓</li>
+                                    </ul>
+                                </li>
+                                <li>提取规则：从发货备注字段提取完整运单号</li>
+                            </ul>
+                        </div>
+
+                        <!-- (2) 智能路由分发 -->
+                        <div class="border-l-2 border-primary/30 pl-4 py-2">
+                            <h4 class="font-medium text-dark mb-3">(2) 智能路由分发</h4>
+                            <p class="mb-2">根据运单号前缀自动匹配物流平台：</p>
+                            <ul class="list-disc pl-8 space-y-1">
+                                <li>THZ* → 铁盒子平台</li>
+                                <li>CLT* → 凯乐通平台</li>
+                                <li>MDD* → 墨多多平台</li>
+                            </ul>
+                        </div>
+
+                        <!-- (3) 物流轨迹查询 -->
+                        <div class="border-l-2 border-primary/30 pl-4 py-2">
+                            <h4 class="font-medium text-dark mb-3">(3) 物流轨迹查询</h4>
+                            <p class="mb-2">铁盒子平台操作流程：</p>
+                            <ol class="list-decimal pl-8 space-y-1 mb-3">
+                                <li>登录系统后进入运单查询界面</li>
+                                <li>输入运单号执行搜索</li>
+                                <li>提取DataTable组件中的最新路由信息</li>
+                            </ol>
+                            <p class="mb-2">凯乐通平台操作流程：</p>
+                            <ol class="list-decimal pl-8 space-y-1 mb-3">
+                                <li>进入FBM专线订单模块</li>
+                                <li>通过订单号搜索（支持模糊匹配）</li>
+                                <li>调取物流轨迹查看页面的最新状态</li>
+                            </ol>
+                            <p class="mb-2">墨多多平台操作：</p>
+                            <p class="pl-8">采用与铁盒子相同的查询逻辑（当前无实际数据）</p>
+                        </div>
+
+                        <!-- (4) 数据回写机制 -->
+                        <div class="border-l-2 border-primary/30 pl-4 py-2">
+                            <h4 class="font-medium text-dark mb-3">(4) 数据回写机制</h4>
+                            <ol class="list-decimal pl-8 space-y-1">
+                                <li>进入马帮ERP签收模块</li>
+                                <li>通过备注搜索栏定位目标运单</li>
+                                <li>在签收备注字段追加物流轨迹信息</li>
+                                <li>保存修改并生成操作日志</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">三、异常处理机制</h2>
+            </div>
+            <div class="pl-14 grid md:grid-cols-3 gap-4">
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-refresh mr-2 text-primary"></i>登录失败重试
+                    </h3>
+                    <ul class="text-gray text-sm list-disc pl-5 space-y-1">
+                        <li>读取配置文件中的重试次数参数</li>
+                        <li>达到最大重试次数后触发钉钉报警</li>
+                        <li>记录错误日志至本地文件</li>
+                    </ul>
+                </div>
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-exchange mr-2 text-primary"></i>数据匹配异常
+                    </h3>
+                    <ul class="text-gray text-sm list-disc pl-5 space-y-1">
+                        <li>未识别前缀的运单归档至异常清单</li>
+                        <li>空轨迹信息标记为待人工复核</li>
+                    </ul>
+                </div>
+                <div class="border border-gray/20 rounded-lg p-4 hover:border-primary/30 transition-colors">
+                    <h3 class="font-medium mb-2 flex items-center">
+                        <i class="fa fa-repeat mr-2 text-primary"></i>流程中断恢复
+                    </h3>
+                    <ul class="text-gray text-sm list-disc pl-5 space-y-1">
+                        <li>支持断点续传功能</li>
+                        <li>自动保存中间处理结果</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">四、数据传输规范</h2>
+            </div>
+            <div class="pl-14 space-y-6">
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-arrow-right mr-2 text-primary"></i>输入参数</h3>
+                    <p class="text-gray pl-2">《配置文件.xlsx》本地路径（包含：</p>
+                    <ul class="list-circle pl-8 mt-2 text-gray space-y-1">
+                        <li>各平台账号密码</li>
+                        <li>异常重试次数</li>
+                        <li>钉钉通知配置</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-arrow-left mr-2 text-primary"></i>输出结果</h3>
+                    <ul class="list-disc pl-5 text-gray space-y-3">
+                        <li>格式化回执单（包含：
+                            <ul class="list-circle pl-6 mt-2 space-y-1">
+                                <li>处理总量</li>
+                                <li>成功/失败数量</li>
+                                <li>异常明细清单</li>
+                            </ul>
+                        </li>
+                        <li>钉钉群消息通知（含回执单摘要）</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 系统依赖 -->
+        <section class="bg-white rounded-xl p-6 md:p-8 card-shadow">
+            <div class="flex items-center mb-5">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                    <i class="fa fa-server text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">五、系统依赖</h2>
+            </div>
+            <div class="pl-14 space-y-6">
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-chrome mr-2 text-primary"></i>1. 浏览器配置</h3>
+                    <ul class="list-disc pl-8 text-gray space-y-1">
+                        <li>Chrome浏览器需启用"下载前询问保存位置"功能</li>
+                        <li>会话保持有效期≥8小时</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-medium text-lg mb-3 flex items-center"><i class="fa fa-desktop mr-2 text-primary"></i>2. 环境要求</h3>
+                    <ul class="list-disc pl-8 text-gray space-y-1">
+                        <li>影刀RPA运行环境</li>
+                        <li>WPS Office 2019+版本</li>
+                        <li>稳定网络连接（建议≥10Mbps）</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页面底部 -->
+    <footer class="max-w-4xl mx-auto mt-12 text-center text-gray text-sm">
+        <p>© 2026 物流RPA自动化项目 | 墨西哥海外仓路由同步业务流程</p>
+    </footer>
+
+    <script>
+        // 折叠面板箭头旋转
+        const collapseHeads = document.querySelectorAll('.collapse-header');
+        collapseHeads.forEach(head => {
+            head.addEventListener('click', () => {
+                const icon = head.querySelector('i');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+    </script>
+</body>
+</html>
