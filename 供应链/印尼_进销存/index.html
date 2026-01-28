@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>印尼进销存-汇总表统计流程</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 修复：通用的折叠面板展开样式（包括全部和单个） */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px;
+                opacity: 1;
+                padding-top: 1rem;
+            }
+            .collapse-content {
+                max-height: 0;
+                opacity: 0;
+                transition: all 0.4s ease-in-out;
+                overflow: hidden;
+                padding-top: 0;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 新增：折叠图标旋转动画 */
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg);
+            }
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 顶部导航
+    <nav class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-cubes text-primary text-xl"></i>
+                <span class="font-medium text-lg text-secondary">供应链自动化流程</span>
+            </div>
+            <div class="text-sm text-gray">
+                <span class="hidden sm:inline">印尼进销存2.0</span>
+                <span class="mx-1">|</span>
+                <span>汇总表统计</span>
+            </div>
+        </div>
+    </nav> -->
+
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                印尼进销存-汇总表统计流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                供应链数据统计自动化方案 | 多表导出 · 数据清洗 · 汇总分析
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>供应链部门需对印尼站点的“印尼3仓库存、库存sku、采购在途、调拨在途、平均发货时间、商品月销量”等信息进行汇总统计。</p>
+                <p class="mt-2">人工进行数据导出、清洗工作繁琐且易出错，通过<b class="text-primary">模块化自动化设计</b>，解决人工统计痛点，提升效率与数据准确性。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">单次耗时</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">印尼进销存2.0-汇总表统计</td>
+                            <td class="p-3 border border-grayBorder">供应链</td>
+                            <td class="p-3 border border-grayBorder">按需执行（定时/手动触发）</td>
+                            <td class="p-3 border border-grayBorder">自动化：5~10分钟（人工：30+分钟）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/客户端 | 验证码类型：无</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS（Excel）</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及ERP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">印尼3仓表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">库存sku表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">采购在途表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">调拨在途（印尼3仓）表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">平均发货时间表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">印尼商品月销量表格导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-download text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary transition-transform duration-300"></i>
+                </div>
+
+                <!-- 步骤1：马帮ERP登录 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：马帮ERP系统登录</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>谷歌浏览器打开https://www.mabangerp.com/index.htm，加载超时重试指定次数</li>
+                                <li>读取《配置文件.xlsx》中的账号密码登录，校验当前登录用户是否匹配</li>
+                                <li>用户不匹配则退出重新登录，登录失败重试指定次数后抛出异常</li>
+                                <li>页面加载中状态持续检查，超时则判定为加载失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：印尼3仓导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：印尼3仓数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>导出操作失败重试指定次数，每次失败记录日志</li>
+                                <li>检查导出文件是否存在，存在则删除后重新导出</li>
+                                <li>页面加载状态持续监控，300秒未完成则判定加载失败</li>
+                                <li>导出完成后校验文件路径，不存在则抛出FileDownLoadError</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：库存sku导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：库存sku数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>导出模板选择错误自动校验，合并共有项复选框自动取消勾选</li>
+                                <li>导出过程中“另存为”弹窗超时未出现则强制关闭并重试</li>
+                                <li>导出文件格式校验，非Excel格式则重新导出</li>
+                                <li>重试次数耗尽仍失败则抛出FileDownLoadError异常</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：采购在途导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：采购在途数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>搜索框输入“ID”后搜索结果加载超时则重新搜索</li>
+                                <li>导出模板加载失败则刷新页面后重试</li>
+                                <li>导出文件路径不存在则自动创建文件夹</li>
+                                <li>导出完成后校验文件大小，空文件则重新导出</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：调拨在途导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：调拨在途（印尼3仓）数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>导出后校验数据源准确性，发货日期为空则判定数据源错误并重新导出</li>
+                                <li>操作成功提示框120秒未出现则判定导出异常</li>
+                                <li>合并共有项复选框自动取消勾选，避免数据合并错误</li>
+                                <li>多页导出时某一页失败则整批重新导出</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤6：平均发货时间导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤6：平均发货时间数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>多页导出时逐页校验，单页导出失败则跳过该页并记录日志</li>
+                                <li>页面刷新后回车确认，确保导出模板正常加载</li>
+                                <li>导出文件按页码命名，避免文件覆盖</li>
+                                <li>所有页面导出完成后合并数据，缺失页面则重新导出</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤7：商品月销量导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤7：印尼商品月销量数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>校验数据更新状态，5分钟未获取到当日数据则判定数据未更新</li>
+                                <li>“另存为”对话框300秒未出现则抛出异常</li>
+                                <li>导出文件为CSV格式，编码异常则用UTF-8重新读取</li>
+                                <li>时间范围自动调整，确保获取近一个月完整数据</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-filter text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary transition-transform duration-300"></i>
+                </div>
+
+                <!-- 印尼3仓清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：印尼3仓数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>清空目标表格旧数据（保留表头），逐行写入新导出数据</li>
+                                <li>拆分O列销量数据（格式：数值/数值/数值），分别写入AF、AG、AH列</li>
+                                <li>数据写入完成后保存文件，自动重新计算公式</li>
+                                <li>异常数据自动填充空值，避免公式计算错误</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 库存sku清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：库存sku数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>复制A~U列数据至汇总表，F~Q列内容转为数值（int/float）</li>
+                                <li>V列添加VLOOKUP公式反查汇总表SKU，标记#N/A异常数据</li>
+                                <li>汇总表自动补充不存在的SKU，公式批量向下填充</li>
+                                <li>使用WPS重新计算公式，确保数值格式统一（0格式）</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 采购在途清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：采购在途数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>删除汇总表原有“采购在途”工作表，重新创建并写入列名</li>
+                                <li>逐行写入导出数据，空值填充为空字符串避免NaN显示</li>
+                                <li>数据写入完成后自动保存，不修改原有数据格式</li>
+                                <li>校验数据行数，0行数据则记录警告日志</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 调拨在途清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：调拨在途（印尼3仓）数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>清空A~M列旧数据，L/M列新增固定表头（预计到货时间/到货时效）</li>
+                                <li>J列数据转为数值类型，非数值格式保留原始值</li>
+                                <li>L列添加公式：=F{行号}+35-TODAY()，计算预计到货时间</li>
+                                <li>M列添加LOOKUP公式，匹配到货时效区间</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 平均发货时间清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：平均发货时间数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>合并多页导出数据，删除原有“发货平均时间”工作表并重建</li>
+                                <li>写入固定列名，I~M列添加时间差/平均值计算公式</li>
+                                <li>M列数值格式设为0.00，确保平均值保留两位小数</li>
+                                <li>IFERROR包裹公式，避免空值导致的#VALUE!异常</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品月销量清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：印尼商品月销量数据清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary transition-transform duration-300"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>读取CSV格式数据，UTF-8编码解析，空值填充为空字符串</li>
+                                <li>删除原有“印尼商品月销量”工作表，重建后写入列名（新增“修正后毛利率”列）</li>
+                                <li>AO列（第41列）添加公式：=AN{行号}+AL{行号}，计算修正后毛利率</li>
+                                <li>数据写入完成后自动保存，校验列数匹配性</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-upload text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位</li>
+                        <li>浏览器：Google Chrome 90.0+（需登录马帮ERP账号）</li>
+                        <li>办公软件：WPS Office 2021+（Excel组件）</li>
+                        <li>运行时：Python 3.8+（需安装pandas、openpyxl等库）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>马帮ERP：供应链模块查看/导出权限</li>
+                        <li>本地文件：目标文件夹读写权限</li>
+                        <li>Excel文件：编辑/保存权限</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 新增：折叠面板交互逻辑 -->
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 单个折叠面板的点击事件
+            const singleCollapseBtns = document.querySelectorAll('.single-collapse-btn');
+            singleCollapseBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 切换当前面板的active类
+                    this.classList.toggle('active');
+                    // 旋转图标（CSS已配置transition）
+                    const icon = this.querySelector('i.fa-chevron-down');
+                    if(icon) {
+                        icon.style.transform = this.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+                    }
+                });
+            });
+
+            // 2. 全部展开/收起按钮（异常处理机制板块）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if(allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    // 切换全部按钮的active类
+                    this.classList.toggle('active');
+                    const isActive = this.classList.contains('active');
+                    // 同步所有单个面板的状态
+                    const sectionSingleBtns = this.parentElement.querySelectorAll('.single-collapse-btn');
+                    sectionSingleBtns.forEach(btn => {
+                        if(isActive) {
+                            btn.classList.add('active');
+                            btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                        } else {
+                            btn.classList.remove('active');
+                            btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                        }
+                    });
+                    // 旋转全部按钮的图标
+                    const icon = this.querySelector('i.fa-chevron-down');
+                    icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+                });
+            }
+
+            // 3. 全部展开/收起按钮（数据传输规范板块）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if(allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const isActive = this.classList.contains('active');
+                    const sectionSingleBtns = this.parentElement.querySelectorAll('.single-collapse-btn');
+                    sectionSingleBtns.forEach(btn => {
+                        if(isActive) {
+                            btn.classList.add('active');
+                            btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                        } else {
+                            btn.classList.remove('active');
+                            btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                        }
+                    });
+                    const icon = this.querySelector('i.fa-chevron-down');
+                    icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
