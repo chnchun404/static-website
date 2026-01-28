@@ -517,4 +517,64 @@
                 <div class="bg-grayLight p-4 rounded-lg">
                     <h3 class="font-medium text-dark mb-2">5.3 第三方系统</h3>
                     <ul class="list-disc pl-6 space-y-1 text-sm">
-                        <li>马帮ERP：https://www.mabangerp.com（采购
+                        <li>马帮ERP：https://www.mabangerp.com（采购</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 新增：折叠面板交互逻辑 -->
+    <script>
+        // 等待页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 单个折叠项点击事件（所有collapse-header，排除全选按钮）
+            const collapseHeaders = document.querySelectorAll('.collapse-item .collapse-header');
+            collapseHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    // 切换active类（控制展开/收起）
+                    this.classList.toggle('active');
+                });
+            });
+
+            // 2. 异常处理板块的“全部展开/收起”按钮
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    const isAllActive = this.classList.contains('active');
+                    // 切换自身active状态
+                    this.classList.toggle('active');
+                    // 批量切换子项
+                    const exceptionHeaders = document.querySelectorAll('#exception-section .collapse-item .collapse-header');
+                    exceptionHeaders.forEach(header => {
+                        if (isAllActive) {
+                            header.classList.remove('active');
+                        } else {
+                            header.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            // 3. 数据传输规范板块的“全部展开/收起”按钮
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    const isAllActive = this.classList.contains('active');
+                    // 切换自身active状态
+                    this.classList.toggle('active');
+                    // 批量切换子项
+                    const dataHeaders = document.querySelectorAll('#data-section .collapse-item .collapse-header');
+                    dataHeaders.forEach(header => {
+                        if (isAllActive) {
+                            header.classList.remove('active');
+                        } else {
+                            header.classList.add('active');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
