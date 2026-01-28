@@ -502,3 +502,100 @@
                 <div class="collapse-item py-2">
                     <div class="collapse-header flex justify-between items-center py-2 px-0 group">
                         <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：订单备注标记规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>字段：采购单号、库存SKU、供应商、站点、运输方式、模板是否重新写入、是否成功截图、箱标PDF是否下载、标签PDF是否下载、已发送到微信群聊、是否登记为已给、状态、失败原因</li>
+                                <li>状态值：成功/失败（失败需填充具体原因）</li>
+                                <li>存储：回执单目录 + 备份到截图与链接备份目录</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.1 基础环境</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>操作系统：Windows（依赖win32系列库）</li>
+                        <li>编程语言：Python 3.x</li>
+                    </ul>
+                </div>
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.2 核心Python库</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>自动化类：xbot（网页/客户端自动化）、pyautogui（截图/键鼠模拟）、win32com（WPS操作）</li>
+                        <li>数据处理类：pandas（Excel回执单生成）、re（备注正则解析）</li>
+                        <li>文件处理类：docx（Word模板操作）、PIL（截图处理）、os/shutil（文件/目录管理）</li>
+                        <li>日志类：xbot.app.logging（流程日志记录）</li>
+                    </ul>
+                </div>
+                <div class="bg-grayLight p-4 rounded-lg">
+                    <h3 class="font-medium text-dark mb-2">5.3 第三方系统</h3>
+                    <ul class="list-disc pl-6 space-y-1 text-sm">
+                        <li>马帮ERP：https://www.mabangerp.com（采购管理、库存SKU、分仓调拨）</li>
+                        <li>海仓国际：含“seacang”关键词的网页（商品管理、入库订单）</li>
+                        <li>WPS Office：Word模板编辑、Excel回执单生成</li>
+                        <li>微信PC端：文件与文本消息发送</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        </main>
+
+    <script>
+        // 单个面板点击事件
+        const panelHeaders = document.querySelectorAll('.collapse-header');
+        const allCollapseBtn = document.getElementById('allCollapseBtn');
+        const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+        let isExceptionAllExpanded = false; // 异常板块独立状态
+        let isDataAllExpanded = false; // 数据板块独立状态
+
+        // 单个面板切换
+        panelHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                // 排除“全部展开/收起”按钮
+                if (header.id !== 'allCollapseBtn' && header.id !== 'allCollapseBtn2') {
+                    header.classList.toggle('active');
+                }
+            });
+        });
+
+        // 全部展开/收起（异常处理板块）
+        allCollapseBtn.addEventListener('click', () => {
+            isExceptionAllExpanded = !isExceptionAllExpanded;
+            const sectionHeaders = document.querySelectorAll('#exception-section .collapse-header:not(#allCollapseBtn)');
+            sectionHeaders.forEach(header => {
+                header.classList.toggle('active', isExceptionAllExpanded);
+            });
+            allCollapseBtn.innerHTML = isExceptionAllExpanded 
+                ? '<span class="font-medium text-primary">收起所有异常处理规则</span><i class="fa fa-chevron-down text-xs text-primary"></i>'
+                : '<span class="font-medium text-primary">展开所有异常处理规则</span><i class="fa fa-chevron-down text-xs text-primary"></i>';
+        });
+
+        // 全部展开/收起（数据传输板块）
+        allCollapseBtn2.addEventListener('click', () => {
+            isDataAllExpanded = !isDataAllExpanded;
+            const sectionHeaders = document.querySelectorAll('#data-section .collapse-header:not(#allCollapseBtn2)');
+            sectionHeaders.forEach(header => {
+                header.classList.toggle('active', isDataAllExpanded);
+            });
+            allCollapseBtn2.innerHTML = isDataAllExpanded
+                ? '<span class="font-medium text-primary">收起所有数据传输规则</span><i class="fa fa-chevron-down text-xs text-primary"></i>'
+                : '<span class="font-medium text-primary">展开所有数据传输规则</span><i class="fa fa-chevron-down text-xs text-primary"></i>';
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>印尼-唛头</title>
+    <title>泰国-订单入库</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -40,11 +40,20 @@
             .collapse-item {
                 border-bottom: 1px solid theme('colors.grayBorder');
             }
-            /* 折叠面板核心样式（修复所有交互问题） */
+            /* 折叠面板核心样式（优化点击区域和优先级） */
             .collapse-header {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 width: 100%; /* 确保点击区域全覆盖 */
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative; /* 确保子元素点击不穿透 */
+            }
+            /* 强制箭头区域也可点击 */
+            .collapse-header > i {
+                cursor: pointer;
+                z-index: 1; /* 确保箭头在点击层级最上层 */
             }
             .collapse-content {
                 max-height: 0;
@@ -52,18 +61,25 @@
                 transition: all 0.4s ease-in-out;
                 overflow: hidden;
                 padding-top: 0;
+                padding-left: 0.5rem;
             }
-            /* 激活状态下展开内容 */
+            /* 激活状态下展开内容（提升选择器优先级） */
             .collapse-header.active + .collapse-content {
                 max-height: 2000px;
                 opacity: 1;
                 padding-top: 1rem;
+                padding-bottom: 0.5rem;
             }
             /* 折叠图标旋转动画（确保生效） */
             .collapse-header .fa-chevron-down {
                 transition: transform 0.3s ease-in-out;
                 display: inline-block;
-                vertical-align: middle; /* 对齐图标 */
+                vertical-align: middle;
+                font-size: 12px;
+                width: 20px; /* 扩大箭头点击区域 */
+                height: 20px;
+                text-align: center;
+                line-height: 20px;
             }
             .collapse-header.active .fa-chevron-down {
                 transform: rotate(180deg);
@@ -96,10 +112,10 @@
     <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
         <div class="max-w-4xl mx-auto text-center">
             <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
-                印尼_唛头自动化处理流程
+                泰国-订单入库
             </h1>
             <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
-                采购单解析 · 模板写入 · 标签下载 · 微信发送 · 订单备注标记 | 替代人工操作，提升跨境采购流程效率与准确性
+                采购单解析 · 验货入库 · 调拨记录生成 · 海仓运单编辑 · 回执单生成 | 替代人工操作，提升泰国订单入库流程效率与准确性
             </p>
         </div>
     </header>
@@ -116,8 +132,8 @@
             <!-- 实施目的 -->
             <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
                 <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
-                <p>供应链部门需处理印尼站点三仓采购单，解析采购/订单备注中的仓库类型（三仓）、装箱数量等信息，完成模板写入、截图、库存SKU标签PDF下载、微信发送至对应供应商群、订单备注标记“已给”等操作。</p>
-                <p class="mt-2">人工处理上述流程繁琐且易出错，通过<b class="text-primary">全流程自动化设计</b>，解决人工操作痛点，提升采购单处理效率与数据准确性。</p>
+                <p>供应链部门需处理泰国站点多仓（2116/1096/9966对应不同仓库）采购单入库流程，解析Excel表格中的采购单号、运输方式、入库数量、运单号等信息，完成马帮ERP验货入库、分仓调拨记录生成、海仓系统入库订单运单号编辑、流程回执单生成等操作。</p>
+                <p class="mt-2">人工处理上述流程繁琐且易出错，通过<b class="text-primary">全流程自动化设计</b>，解决人工操作痛点，提升订单入库处理效率与数据准确性。</p>
             </div>
             <!-- 基本信息 -->
             <div class="pl-12 overflow-x-auto">
@@ -128,15 +144,15 @@
                             <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
                             <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
                             <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
-                            <th class="p-3 border border-grayBorder font-medium text-primary">单次耗时</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心价值</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">海仓_马帮ERP-采购管理-采购信息同步至卖头方-印尼</td>
+                            <td class="p-3 border border-grayBorder">海仓_马帮ERP_泰国订单入库</td>
                             <td class="p-3 border border-grayBorder">供应链</td>
-                            <td class="p-3 border border-grayBorder">按需执行（定时/手动触发）</td>
-                            <td class="p-3 border border-grayBorder">自动化：3~5分钟/条（人工：15+分钟/条）</td>
+                            <td class="p-3 border border-grayBorder">每日执行（基于当日Excel表格数据）</td>
+                            <td class="p-3 border border-grayBorder">自动化替代人工，减少重复操作，降低出错率</td>
                         </tr>
                     </tbody>
                 </table>
@@ -171,14 +187,14 @@
                                 <td class="p-3 border border-grayBorder">Yes</td>
                             </tr>
                             <tr class="table-hover-row hover:bg-primaryLight/50">
-                                <td class="p-3 border border-grayBorder">WPS（Word/Excel）</td>
-                                <td class="p-3 border border-grayBorder">客户端</td>
-                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">海仓系统</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
                             </tr>
                             <tr class="table-hover-row hover:bg-primaryLight/50">
-                                <td class="p-3 border border-grayBorder">微信</td>
+                                <td class="p-3 border border-grayBorder">WPS（Excel）</td>
                                 <td class="p-3 border border-grayBorder">客户端</td>
-                                <td class="p-3 border border-grayBorder">Yes（需登录）</td>
+                                <td class="p-3 border border-grayBorder">无</td>
                             </tr>
                         </tbody>
                     </table>
@@ -196,35 +212,27 @@
                     </thead>
                     <tbody>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">马帮ERP登录与采购单查询</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP登录与采购单数据读取</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP + Excel</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">采购单数据解析（日期/数量合并）</td>
+                            <td class="p-3 border border-grayBorder">Excel</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP验货入库操作</td>
                             <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">采购单备注解析（仓库/装箱规格）</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP分仓调拨记录生成与发货</td>
                             <td class="p-3 border border-grayBorder">马帮ERP</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">库存SKU标签PDF下载</td>
-                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                            <td class="p-3 border border-grayBorder">海仓系统登录与入库订单运单号编辑</td>
+                            <td class="p-3 border border-grayBorder">海仓系统</td>
                         </tr>
                         <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">三仓调拨批次号生成</td>
-                            <td class="p-3 border border-grayBorder">马帮ERP</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">Word模板写入与截图</td>
-                            <td class="p-3 border border-grayBorder">WPS（Word）</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">微信发送截图/PDF/采购单号</td>
-                            <td class="p-3 border border-grayBorder">微信</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">马帮订单备注标记“已给”</td>
-                            <td class="p-3 border border-grayBorder">马帮ERP</td>
-                        </tr>
-                        <tr class="table-hover-row hover:bg-primaryLight/50">
-                            <td class="p-3 border border-grayBorder">流程回执单生成</td>
+                            <td class="p-3 border border-grayBorder">流程回执单生成（Excel）</td>
                             <td class="p-3 border border-grayBorder">WPS（Excel）</td>
                         </tr>
                     </tbody>
@@ -249,136 +257,95 @@
 
                 <!-- 步骤1：马帮ERP登录 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
+                    <div class="collapse-header py-2 px-0 group">
                         <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：马帮ERP系统登录</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>登录前校验当前用户，与目标用户（唐雨春）不一致则退出重登</li>
-                                <li>登录失败触发重试（次数由retry_times控制），每次失败记录日志</li>
+                                <li>登录超时/失败触发重新登录逻辑，重建浏览器窗口</li>
                                 <li>页面加载超时（300秒）则判定登录失败，抛出异常</li>
-                                <li>登录超时后重新创建浏览器窗口，最大化加载页面</li>
+                                <li>登录后店铺授权提醒弹窗自动关闭（勾选7天不提醒）</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤2：采购单查询与解析 -->
+                <!-- 步骤2：采购单数据读取 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：采购单查询与备注解析</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：采购单数据读取与解析</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>单条采购单包含多个SKU则标记失败，跳过处理</li>
-                                <li>采购/订单备注无任何信息则标记失败，记录原因</li>
-                                <li>无法解析装箱规格/箱数则标记失败，需人工确认</li>
-                                <li>非整箱（箱数为小数）则跳过处理，标记失败</li>
-                                <li>采购数量小于装箱规格则标记失败，需人工确认</li>
-                                <li>备注不含“中印/天牛”关键词或含“已给”则跳过处理</li>
+                                <li>指定文件夹无Excel文件则抛出异常，终止流程</li>
+                                <li>表格中无当日数据则抛出异常，终止流程</li>
+                                <li>相同采购单号+运输方式自动合并入库数量，避免重复处理</li>
+                                <li>识别重复采购单号并标记，跳过重复入库操作</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤3：库存SKU标签下载 -->
+                <!-- 步骤3：马帮验货入库 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：库存SKU标签PDF下载</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：马帮ERP验货入库操作</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>马帮库存SKU库未找到对应SKU则标记失败，需人工维护</li>
-                                <li>标签PDF下载超时（最多重试4次）则标记异常</li>
-                                <li>本地标签文件已存在则跳过下载，直接使用现有文件</li>
-                                <li>打印窗口未弹出则重试操作，失败则抛出异常</li>
-                                <li>搜索SKU窗口加载超时（30秒）则关闭窗口，标记失败</li>
+                                <li>采购单号搜索无结果则标记失败，记录失败原因</li>
+                                <li>无库存SKU编号则标记失败，需人工确认</li>
+                                <li>点击确认入库后1分钟未出现“入库成功”提示则标记失败</li>
+                                <li>重复采购单号复用已获取的SKU编号，标记为成功</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤4：调拨批次号生成 -->
+                <!-- 步骤4：调拨记录生成 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：三仓调拨批次号生成</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：马帮ERP调拨记录生成与发货</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>分仓调拨页面加载超时（300秒）则抛出异常</li>
-                                <li>查询SKU无数据则关闭窗口，标记失败</li>
+                                <li>未完成入库的采购单跳过调拨处理，标记失败</li>
+                                <li>搜索SKU无数据则关闭窗口，标记失败</li>
                                 <li>未找到名称匹配的SKU则关闭窗口，标记失败</li>
-                                <li>添加SKU到调拨单失败则标记异常，需人工确认</li>
-                                <li>批次号获取失败则关闭页面，标记异常</li>
+                                <li>发货操作确认弹窗超时（30秒）则重试点击</li>
+                                <li>调拨添加/保存失败则标记异常，记录具体原因</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- 步骤5：模板写入与截图 -->
+                <!-- 步骤5：海仓运单号编辑 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：Word模板写入与截图</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：海仓系统运单号编辑</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
                             <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>Word模板打开失败（最多重试10次）则标记异常</li>
-                                <li>截图保存到本地失败则关闭Word，标记失败</li>
-                                <li>模板写入时字体/格式设置失败则记录日志，继续执行</li>
-                                <li>截图区域定位错误则直接抛出异常</li>
-                                <li>WPS进程未正常关闭则强制结束进程</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 步骤6：微信发送 -->
-                <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤6：微信发送截图/PDF/采购单号</span>
-                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
-                    </div>
-                    <div class="collapse-content pl-2 text-gray">
-                        <div class="step-card">
-                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
-                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>微信未登录则将文件备份到本地，标记需人工发送</li>
-                                <li>未找到对应供应商群聊则标记失败，需人工确认</li>
-                                <li>文件发送失败则重试，失败则记录日志</li>
-                                <li>发送后校验是否成功，失败则标记异常</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 步骤7：订单备注标记 -->
-                <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤7：马帮订单备注标记“已给”</span>
-                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
-                    </div>
-                    <div class="collapse-content pl-2 text-gray">
-                        <div class="step-card">
-                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
-                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
-                                <li>备注输入框未激活则重试点击，失败则标记异常</li>
-                                <li>标记后未显示“操作成功”弹窗则标记失败，需人工确认</li>
-                                <li>重复标记“已给”则跳过，避免重复写入</li>
-                                <li>马帮页面超时则重新加载，重试标记</li>
+                                <li>海仓登录超时自动触发重新登录逻辑</li>
+                                <li>采购单号在草稿中无结果则标记失败，记录原因</li>
+                                <li>查询出多条相同采购单号记录则标记失败，需人工确认</li>
+                                <li>运单号已存在于备注中则跳过，标记为“已存在”</li>
+                                <li>页面加载超时（45秒）则抛出异常，重试操作</li>
+                                <li>操作失败后自动重置页面，重新定位操作入口</li>
                             </ul>
                         </div>
                     </div>
@@ -401,36 +368,37 @@
                     <i class="fa fa-chevron-down text-xs text-primary"></i>
                 </div>
 
-                <!-- 规则1：采购单信息解析 -->
+                <!-- 规则1：采购单数据解析 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：采购单备注信息解析规范</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：采购单数据解析规范</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>仓库解析：固定匹配“3仓/三仓”，仅处理印尼三仓采购单</li>
-                                <li>装箱规格解析：正则匹配“X箱/箱规X”格式内容，提取装箱规格</li>
-                                <li>箱数解析：采购数量 ÷ 装箱规格 = 总箱数，非整数则标记失败</li>
-                                <li>关键词过滤：仅处理含“中印/天牛”且不含“已给”的采购单</li>
+                                <li>日期筛选：仅处理表格中“时间”字段为当日的数据</li>
+                                <li>数量合并：相同采购单号+运输方式的记录，入库数量自动求和</li>
+                                <li>仓库编码映射：2116→TH243、1096→TH2、9966→TH228</li>
+                                <li>运输方式适配：“陆运”自动转换为“陆地运输”（适配马帮ERP字段）</li>
                             </ol>
                         </div>
                     </div>
                 </div>
 
-                <!-- 规则2：模板写入规范 -->
+                <!-- 规则2：回执单生成规范 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：Word模板写入规范</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：流程回执单生成规范</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>模板清空：先清空原有内容，重置字体为微软雅黑、36磅、加粗、居中</li>
-                                <li>中印模板内容：调拨批次号、SKU、每箱数量、总箱数、CNID-XNKJ、采购单号、XN-003</li>
-                                <li>天牛模板内容：调拨批次号、SKU、每箱数量、总箱数、TN308、采购单号</li>
+                                <li>字段：采购单号、运输方式、入库数量、运单号、SKU编号、仓库编码、入库状态、失败原因</li>
+                                <li>状态值：成功/失败（失败需填充具体原因，如“搜索无结果”“入库超时”）</li>
+                                <li>命名规则：{时间戳}_泰国入库回执单.xlsx（时间戳含毫秒级）</li>
+                                <li>存储路径：指定的输出文件夹，与输入文件夹分离</li>
                             </ol>
                         </div>
                     </div>
@@ -438,50 +406,34 @@
 
                 <!-- 规则3：文件存储规范 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
+                    <div class="collapse-header py-2 px-0 group">
                         <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：文件命名与存储规范</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>库存SKU标签PDF：命名“产品标签{SKU}.pdf”，存储到ID_LABEL_FOLDER_PATH目录</li>
-                                <li>模板截图：命名“{采购单号}_{供应商}.png”，存储到“截图与链接备份/印尼/采购单号”目录</li>
-                                <li>回执单：命名“{时间戳}_回执单.xlsx”，存储到“回执单”目录</li>
+                                <li>输入文件：共享文件夹路径（\\192.168.1.3\供应链专用\影刀导入\海仓_马帮ERP_泰国订单入库\导入模板）</li>
+                                <li>输出回执单：指定输出文件夹，按时间戳命名避免重复</li>
+                                <li>临时文件：自动清理WPS进程，避免文件占用</li>
                             </ol>
                         </div>
                     </div>
                 </div>
 
-                <!-- 规则4：微信发送规范 -->
+                <!-- 规则4：海仓运单编辑规范 -->
                 <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：微信发送内容规范</span>
+                    <div class="collapse-header py-2 px-0 group">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：海仓运单号编辑规范</span>
                         <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
                     </div>
                     <div class="collapse-content pl-2 text-gray">
                         <div class="step-card">
                             <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>发送对象：供应商编码模板匹配的对应微信群聊</li>
-                                <li>发送顺序：模板截图 → 标签PDF → 采购单号</li>
-                                <li>发送失败：文件备份到本地，回执单标记“需人工发送”</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 规则5：回执单生成规范 -->
-                <div class="collapse-item py-2">
-                    <div class="collapse-header flex justify-between items-center py-2 px-0 group">
-                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：流程回执单生成规范</span>
-                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
-                    </div>
-                    <div class="collapse-content pl-2 text-gray">
-                        <div class="step-card">
-                            <ol class="list-decimal pl-6 space-y-1 text-sm">
-                                <li>字段：采购单号、库存SKU、供应商、站点、运输方式、模板是否重新写入、是否成功截图、标签PDF是否下载、已发送到微信群聊、是否登记为已给、状态、失败原因</li>
-                                <li>状态值：成功/失败（失败需填充具体原因）</li>
-                                <li>存储：回执单目录 + 备份到截图与链接备份目录</li>
+                                <li>仓库匹配：2116→(TH243)海仓泰国6仓、1096→(TH2)海仓泰国2仓、9966→(TH228)海仓泰国5仓</li>
+                                <li>备注格式：在原有备注后追加运单号（格式：{采购单号}_{运输方式} {运单号}）</li>
+                                <li>重复处理：已存在运单号则跳过，避免重复写入</li>
+                                <li>操作校验：保存后校验备注是否包含运单号，确保操作生效</li>
                             </ol>
                         </div>
                     </div>
@@ -501,81 +453,122 @@
                 <div class="bg-grayLight p-4 rounded-lg">
                     <h3 class="font-medium text-dark mb-2">5.1 基础环境</h3>
                     <ul class="list-disc pl-6 space-y-1 text-sm">
-                        <li>操作系统：Windows（依赖win32系列库）</li>
+                        <li>操作系统：Windows（依赖win32系列库、进程管理）</li>
                         <li>编程语言：Python 3.x</li>
                     </ul>
                 </div>
                 <div class="bg-grayLight p-4 rounded-lg">
                     <h3 class="font-medium text-dark mb-2">5.2 核心Python库</h3>
                     <ul class="list-disc pl-6 space-y-1 text-sm">
-                        <li>自动化类：xbot（网页/客户端自动化）、pyautogui（截图/键鼠模拟）、win32com（WPS操作）</li>
-                        <li>数据处理类：pandas（Excel回执单生成）、re（备注正则解析）</li>
-                        <li>文件处理类：docx（Word模板操作）、PIL（截图处理）、os/shutil（文件/目录管理）</li>
-                        <li>日志类：xbot.app.logging（流程日志记录）</li>
+                        <li>自动化类：xbot（网页/客户端自动化）、xbot_visual（图像识别）</li>
+                        <li>数据处理类：pandas（Excel表格解析/回执单生成）</li>
+                        <li>系统操作类：os（文件/路径管理）、win32（进程终止）、time（超时控制）</li>
+                        <li>日志/异常类：xbot.app.logging（日志记录）、traceback（异常追踪）</li>
                     </ul>
                 </div>
                 <div class="bg-grayLight p-4 rounded-lg">
                     <h3 class="font-medium text-dark mb-2">5.3 第三方系统</h3>
                     <ul class="list-disc pl-6 space-y-1 text-sm">
-                        <li>马帮ERP：https://www.mabangerp.com（采购管理、库存SKU、分仓调拨）</li>
-                        <li>海仓国际：含“seacang”关键词的网页（商品管理、入库订单）</li>
-                        <li>WPS Office：Word模板编辑、Excel回执单生成</li>
-                        <li>微信PC端：文件与文本消息发送</li>
+                        <li>马帮ERP：https://www.mabangerp.com（验货入库/调拨管理）</li>
+                        <li>海仓系统：网页端（入库订单/运单号编辑）</li>
                     </ul>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 新增：折叠面板交互逻辑 -->
+    <!-- 折叠面板交互逻辑（彻底修复版） -->
     <script>
         // 等待页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. 单个折叠项点击事件（所有collapse-header，排除全选按钮）
-            const collapseHeaders = document.querySelectorAll('.collapse-item .collapse-header');
-            collapseHeaders.forEach(header => {
-                header.addEventListener('click', function() {
-                    // 切换active类（控制展开/收起）
-                    this.classList.toggle('active');
+            // 通用折叠切换函数
+            const toggleCollapse = (header) => {
+                header.classList.toggle('active');
+                // 同步父级全部展开按钮状态
+                updateAllCollapseStatus(header.closest('#exception-section, #data-section'));
+            };
+
+            // 更新全部展开按钮状态
+            const updateAllCollapseStatus = (container) => {
+                if (!container) return;
+                const allBtn = container.querySelector('#allCollapseBtn, #allCollapseBtn2');
+                if (!allBtn) return;
+                
+                const allItems = container.querySelectorAll('.collapse-item .collapse-header');
+                const allActive = Array.from(allItems).every(item => item.classList.contains('active'));
+                const someActive = Array.from(allItems).some(item => item.classList.contains('active'));
+                
+                if (allActive) {
+                    allBtn.classList.add('active');
+                } else if (!someActive) {
+                    allBtn.classList.remove('active');
+                }
+            };
+
+            // 1. 单个折叠项点击事件（包含箭头、文字等所有子元素）
+            const collapseItems = document.querySelectorAll('.collapse-item .collapse-header');
+            collapseItems.forEach(header => {
+                // 给整个collapse-header绑定点击事件，包含所有子元素
+                header.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleCollapse(this);
                 });
+                // 额外给箭头单独绑定，确保兼容性
+                const arrow = header.querySelector('.fa-chevron-down');
+                if (arrow) {
+                    arrow.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleCollapse(header);
+                    });
+                }
             });
 
             // 2. 异常处理板块的“全部展开/收起”按钮
             const allCollapseBtn = document.getElementById('allCollapseBtn');
             if (allCollapseBtn) {
                 allCollapseBtn.addEventListener('click', function() {
-                    const isAllActive = this.classList.contains('active');
-                    // 切换自身active状态
-                    this.classList.toggle('active');
-                    // 批量切换子项
-                    const exceptionHeaders = document.querySelectorAll('#exception-section .collapse-item .collapse-header');
-                    exceptionHeaders.forEach(header => {
-                        if (isAllActive) {
-                            header.classList.remove('active');
+                    const isActive = this.classList.toggle('active');
+                    const targetItems = document.querySelectorAll('#exception-section .collapse-item .collapse-header');
+                    targetItems.forEach(item => {
+                        if (isActive) {
+                            item.classList.add('active');
                         } else {
-                            header.classList.add('active');
+                            item.classList.remove('active');
                         }
                     });
                 });
+                // 箭头单独绑定
+                const arrow = allCollapseBtn.querySelector('.fa-chevron-down');
+                if (arrow) {
+                    arrow.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        allCollapseBtn.click();
+                    });
+                }
             }
 
-            // 3. 数据传输规范板块的“全部展开/收起”按钮
+            // 3. 数据传输规范板块的“全部展开/收起”按钮（补全之前缺失的逻辑）
             const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
             if (allCollapseBtn2) {
                 allCollapseBtn2.addEventListener('click', function() {
-                    const isAllActive = this.classList.contains('active');
-                    // 切换自身active状态
-                    this.classList.toggle('active');
-                    // 批量切换子项
-                    const dataHeaders = document.querySelectorAll('#data-section .collapse-item .collapse-header');
-                    dataHeaders.forEach(header => {
-                        if (isAllActive) {
-                            header.classList.remove('active');
+                    const isActive = this.classList.toggle('active');
+                    const targetItems = document.querySelectorAll('#data-section .collapse-item .collapse-header');
+                    targetItems.forEach(item => {
+                        if (isActive) {
+                            item.classList.add('active');
                         } else {
-                            header.classList.add('active');
+                            item.classList.remove('active');
                         }
                     });
                 });
+                // 箭头单独绑定
+                const arrow = allCollapseBtn2.querySelector('.fa-chevron-down');
+                if (arrow) {
+                    arrow.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        allCollapseBtn2.click();
+                    });
+                }
             }
         });
     </script>
