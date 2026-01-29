@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>负利润明细同步大群</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+                transform: rotate(0) !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                负利润明细同步大群-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                负利润订单自动化处理方案 | 马帮ERP数据提取 · 按国家拆分 · 利润率筛选 · Excel分类导出 · 钉钉群同步
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>企业内需对<b>马帮ERP中昨日付款订单</b>进行负利润明细筛选与同步，核心是提取「全部订单-昨日付款」数据，按<b>国家二字码（TH/PH/ID）</b>和<b>利润率区间</b>精准过滤，拆分出「利润率&lt;0%（负利润）」和「0%≤利润率&lt;15%（低利润）」两类数据，生成双工作表标准化Excel文件，同步至泰国、菲律宾、印尼钉钉大群。</p>
+                <p class="mt-2">人工完成马帮ERP订单筛选、批量导出、利润率计算、按国家分类、Excel拆分等工作，存在<b>效率低、易遗漏、利润率计算不精准、多国家数据拆分繁琐</b>等痛点，通过自动化流程实现订单数据端到端处理，精准分类负利润/低利润订单，提升订单明细同步效率与准确性。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮_负利润订单明细ID_同步至钉钉各大群</td>
+                            <td class="p-3 border border-grayBorder">运营部</td>
+                            <td class="p-3 border border-grayBorder">每日执行（自动触发）</td>
+                            <td class="p-3 border border-grayBorder">自动提取、筛选、拆分负利润订单数据，生成标准化Excel并同步至指定国家钉钉群</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/客户端/即时通讯工具 | 验证码类型：无 | 账号独立校验</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">订单数据筛选、批量导出、登录状态校验、分页操作</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS（Excel）</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">数据拆分、双工作表生成、文件保存、格式兼容</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">数据处理、自动化逻辑执行、异常监控、进程管理</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">钉钉</td>
+                                <td class="p-3 border border-grayBorder">客户端/网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">按国家大群同步生成的Excel文件，实现数据分发</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出文件类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境初始化与残留进程清理</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP登录校验与订单页面访问</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python+xbot</td>
+                            <td class="p-3 border border-grayBorder">无（页面准备）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">昨日付款订单多条件筛选</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+xbot_visual</td>
+                            <td class="p-3 border border-grayBorder">网页筛选结果（内存）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">负利润订单数据批量分页导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+xbot</td>
+                            <td class="p-3 border border-grayBorder">XLSX（原始明细数据）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">订单数据按国家/利润率拆分</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas</td>
+                            <td class="p-3 border border-grayBorder">结构化数据（内存）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">多国家双工作表Excel生成</td>
+                            <td class="p-3 border border-grayBorder">Python+openpyxl</td>
+                            <td class="p-3 border border-grayBorder">XLSX（分类明细数据）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">文件路径全局存储与钉钉同步</td>
+                            <td class="p-3 border border-grayBorder">Python+钉钉API</td>
+                            <td class="p-3 border border-grayBorder">无（数据同步）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS/Chrome残留进程（taskkill），关闭所有Chrome窗口，避免进程占用导致文件操作失败</li>
+                    <li>马帮ERP自动登出重登，通过全局变量Login_info校验登录有效性，避免账号错登/过期导致数据提取失败</li>
+                    <li>订单管理页面多条件自动筛选（全部订单+付款时间=昨日），支持页面加载状态图像识别监控，确保筛选条件生效</li>
+                    <li>0利润订单明细模板批量导出，自动获取总页数并分页处理，支持每一页独立导出并校验文件存在性</li>
+                    <li>订单数据按<b>国家二字码（TH/PH/ID）</b>精准拆分，同时按利润率区间过滤（&lt;0%、0%≤&lt;15%），支持多文件数据合并</li>
+                    <li>利润率自动解析（百分比转数值）、付款时间格式统一转换（datetime），确保数据过滤的准确性</li>
+                    <li>自动生成双工作表Excel文件（负利润、利润低于15%），保留原始表头结构，按国家分类命名并存储</li>
+                    <li>页面加载状态双版本图像识别监控（加载中_图像/加载中_图像2），最多循环900次检测，超时自动抛出异常</li>
+                    <li>通用点击工具类CommonUtil封装，元素点击前激活窗口，最多重试10次，支持忽略错误模式，确保操作稳定性</li>
+                    <li>输出文件夹自动创建（含毫秒级时间戳），支持文件夹已存在容错，生成文件路径写入全局变量方便后续钉钉同步</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境初始化与进程清理 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境初始化与进程清理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>自动创建含毫秒级时间戳的「处理完成」子文件夹，通过exist_ok=True支持文件夹已存在的容错处理，无需手动创建</li>
+                                <li>流程启动前强制初始化环境，确保无残留进程占用Excel文件或浏览器资源，避免文件读写权限冲突</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：马帮ERP登录状态校验 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：马帮ERP登录状态校验</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>流程启动时先执行mb_exit_login登出操作，再通过全局变量Login_info调用mb_login重新登录，确保登录状态绝对有效</li>
+                                <li>马帮ERP订单页面以最大化模式启动，页面加载超时设置为800s，远大于常规超时，适配大数量订单数据加载</li>
+                                <li>页面启动后执行reload刷新+wait_load_completed等待，双重确保页面完全加载，避免元素未渲染导致操作失败</li>
+                                <li>登录相关异常捕获完整堆栈信息（traceback），写入xbot.app.logging日志系统，方便问题定位与排查</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：页面加载状态监控 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：页面加载状态双版本监控</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>提供check_loading_status/check_loading_status_2双方法，分别适配「加载中_图像」「加载中_图像2」，兼容马帮ERP不同页面加载图标</li>
+                                <li>通过xbot_visual.image.exist全局屏幕检测加载图标，无窗口遮挡遗漏，确保加载状态判断准确</li>
+                                <li>最多循环900次检测（约15分钟），每1s检测一次，图标消失则立即退出监控，无需等待满次数，提升效率</li>
+                                <li>900次循环后仍检测到加载图标，直接抛出「加载失败」明确异常，终止当前流程并提示</li>
+                                <li>所有元素点击、筛选、导出操作后，均强制执行加载状态监控，形成操作-等待的闭环，避免提前执行后续操作</li>
+                                <li>检测到自定义订单列表弹窗时，自动点击关闭按钮，避免弹窗遮挡操作元素导致点击无效</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：通用元素点击操作 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：通用点击工具类操作</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>所有元素点击统一通过CommonUtil.click静态方法实现，点击前先执行page.activate激活浏览器窗口，避免窗口后台导致点击无效</li>
+                                <li>元素点击最多重试10次，每次间隔1s，每次重试前检测元素是否显示，确保操作对象存在</li>
+                                <li>点击操作内置merge_time合并延时（0.3s），避免连续点击导致页面响应异常，操作后固定等待1s获取反馈</li>
+                                <li>10次重试失败则抛出「click timeout, element not exists」明确异常，记录目标元素标识（mb_前缀），方便定位</li>
+                                <li>支持ignore_error忽略错误模式，非核心操作可选择不抛出异常，保证流程整体连续性</li>
+                                <li>支持simulate模拟点击开关，适配马帮ERP不同元素的点击要求，提升操作兼容性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：订单数据批量导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：订单数据分页导出与校验</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>导出前自动取消「合并订单共有信息」复选框勾选状态，确保导出数据为明细级，避免数据聚合导致拆分失败</li>
+                                <li>通过提取页面总页数文本中的数字，自动计算分页数量，支持非整数页数，确保批量导出无遗漏</li>
+                                <li>分页导出时，切换下一页后重新检测「操作成功」元素，确保页面数据加载完成后再执行导出</li>
+                                <li>导出操作通过xbot.web.download实现，非模拟下载，dialog_timeout设置为600s，适配大文件下载耗时</li>
+                                <li>文件导出后强制通过os.path.exists校验文件存在性，不存在则不加入文件列表，避免后续处理空文件</li>
+                                <li>导出文件命名含日期+页码，确保文件名唯一性，避免多页数据覆盖</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤6：订单数据过滤与拆分 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤6：数据解析与多条件过滤</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>读取Excel时强制将「订单编号」列设为字符串类型，避免数字型订单编号丢失前导零</li>
+                                <li>利润率通过extract_percentage方法自动解析（如「-5.2%」转-5.2），兼容百分比字符串/纯数值等格式</li>
+                                <li>付款时间通过pd.to_datetime自动转换为datetime对象，支持多种时间格式，确保时间过滤准确性</li>
+                                <li>多文件数据通过列表合并实现，按国家二字码+利润率双条件过滤，过滤结果以列表形式暂存，避免数据丢失</li>
+                                <li>过滤条件采用向量化操作（pandas），而非循环判断，提升大数据量处理效率，避免内存溢出</li>
+                                <li>无符合条件数据时，仍生成对应国家Excel文件，仅保留表头，避免钉钉同步时缺失文件</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤7：Excel文件生成与保存 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤7：双工作表Excel生成与校验</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>通过openpyxl.Workbook新建工作簿，自动创建「负利润」「利润低于15%」两个工作表，固定工作表名称</li>
+                                <li>数据填充前先写入原始表头，确保生成文件的列结构与导出原始文件一致，提升可读性</li>
+                                <li>按国家二字码匹配对应过滤数据，数据填充采用append方法，支持任意行数数据，适配不同数据量</li>
+                                <li>文件保存时捕获所有异常，写入日志并抛出明确提示，方便排查文件读写/权限问题</li>
+                                <li>文件保存后立即执行wb.close()关闭工作簿，释放文件句柄，避免后续钉钉同步时文件被占用</li>
+                                <li>生成文件路径按国家二字码存入全局变量glv['splitAfter_filepath_all']，键值对结构方便钉钉群精准匹配</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：马帮ERP订单数据筛选规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：马帮ERP订单数据筛选规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定筛选范围：「全部订单」页面，不可切换至其他订单分类，确保数据范围完整性</li>
+                                <li>时间筛选条件：「订单付款时间」=「昨日」，系统自动获取日期，无需手动输入，确保时间范围准确</li>
+                                <li>筛选后执行搜索操作，而非直接导出，确保筛选条件生效，避免导出全量数据</li>
+                                <li>导出模板固定选择「0利润订单明细」，确保导出字段包含国家二字码、利润率、付款时间等核心字段</li>
+                                <li>所有筛选/导出操作后，均强制执行加载状态监控，确保操作完成后再执行下一步</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：订单数据批量导出规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：订单数据批量导出规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>导出路径：glv['Output_folder']（根路径+处理完成+毫秒时间戳），自动创建，支持容错</li>
+                                <li>导出文件格式：XLSX，兼容WPS/Excel 2016+所有版本，避免格式兼容问题</li>
+                                <li>单页导出文件命名：{当前日期}_负利润明细_原表{页码}.xlsx，确保唯一性与可识别性</li>
+                                <li>导出方式：非模拟下载（xbot.web.download），关闭浏览器下载弹窗，自动保存至指定路径</li>
+                                <li>导出校验：文件存在性校验通过后，方可加入source_filepaths列表，参与后续数据处理</li>
+                                <li>分页导出：按页面总页数自动循环，无需手动干预，支持1-N页任意数量数据导出</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：订单数据过滤与分类规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：数据过滤与国家分类规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>国家分类主键：「国家二字码」列，仅筛选TH（泰国）、PH（菲律宾）、ID（印尼）三个国家，其他国家数据忽略</li>
+                                <li>利润率过滤规则1：负利润 - 利润率&lt;0%，提取所有亏损订单明细，用于核心异常监控</li>
+                                <li>利润率过滤规则2：低利润 - 0%≤利润率&lt;15%，提取微利订单明细，用于利润优化分析</li>
+                                <li>数据合并规则：多页导出的原始文件，按列名统一合并为一个数据集，再执行过滤，确保数据完整性</li>
+                                <li>时间过滤：默认按昨日付款时间过滤，可扩展为指定时间范围（start_time/end_time），适配临时分析需求</li>
+                                <li>数据存储：过滤后的数据以列表形式暂存，按国家+利润率分类，避免数据混淆</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：Excel文件数据填充规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：双工作表Excel数据填充规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>工作簿结构：每个国家一个独立Excel文件，内含2个工作表，表名固定为「负利润」「利润低于15%」</li>
+                                <li>表头规范：完全复用原始导出文件的列名与顺序，不新增/删除/修改列，确保数据一致性</li>
+                                <li>数据起始行：第2行（第1行为表头），按行依次填充，空值直接留空，不填充默认值</li>
+                                <li>数据类型：保留原始数据类型，订单编号强制为字符串，数值型字段保持浮点/整型，确保数据准确性</li>
+                                <li>填充规则：先填充「负利润」工作表，再填充「利润低于15%」工作表，避免数据覆盖</li>
+                                <li>无数据处理：某一利润率区间无数据时，仅保留表头，不填充空行，提升文件整洁度</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则5：Excel文件命名与存储规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：输出文件命名与存储规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>存储路径：与原始导出文件相同（glv['Output_folder']），便于文件统一管理与查找</li>
+                                <li>文件命名规则：{当前日期}_负利润明细_{国家名称}.xlsx（如20260129_负利润明细_泰国.xlsx）</li>
+                                <li>文件格式：固定为XLSX，兼容钉钉文件预览与本地编辑，避免使用CSV等易乱码格式</li>
+                                <li>唯一性：文件名含日期+国家名称，确保每日生成的文件不重名，避免历史文件覆盖</li>
+                                <li>权限：生成的文件继承文件夹权限，确保钉钉机器人可读取并上传</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则6：全局变量数据传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：全局变量数据传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>核心入参：glv['Login_info']（马帮登录信息）、glv['Output_folder']（输出根路径），由外部配置传入，无需硬编码</li>
+                                <li>中间变量：glv['Output_folder']（动态拼接，含时间戳），存储实际输出路径，供后续所有模块调用</li>
+                                <li>输出变量：glv['splitAfter_filepath_all']（字典类型），键为国家二字码（TH/PH/ID），值为对应Excel文件绝对路径，供钉钉同步模块使用</li>
+                                <li>变量类型：路径类变量统一为绝对路径，避免相对路径导致的文件找不到问题</li>
+                                <li>变量生命周期：全局变量贯穿整个流程，流程结束后可持久化，方便问题排查</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理）</li>
+                        <li>浏览器：Google Chrome 90.0+（支持最大化启动、无痕模式、窗口激活、元素定位、非模拟下载）</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持xlsx格式、明细数据导出、无锁文件读写）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持pandas向量化操作、openpyxl工作表操作）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、文件下载核心能力）</li>
+                        <li>即时通讯：钉钉PC端/钉钉开放平台（支持机器人文件上传、群聊消息发送，实现数据同步）</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>网页自动化：xbot、xbot_visual（影刀核心库，提供网页操作、图像识别、文件下载能力）</li>
+                        <li>Excel操作：openpyxl（新建工作簿、多工作表操作、数据填充）、pandas（Excel读取、数据过滤、合并）</li>
+                        <li>数据处理：math（内置，数值计算）、re（内置，正则提取页码/利润率百分比）</li>
+                        <li>时间处理：datetime（内置，日期转换、时间范围过滤）、time（内置，延时、等待、时间戳生成）</li>
+                        <li>文件操作：os（内置，路径处理、文件存在性校验、文件夹创建）、shutil（内置，文件操作扩展）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录）、traceback（内置，异常堆栈信息捕获）</li>
+                        <li>钉钉同步：dingtalk-sdk（钉钉开放平台SDK，支持群机器人文件上传、消息发送）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>马帮ERP：订单管理模块的<b>查看/筛选/导出/登出/登录</b>权限，可访问「全部订单」明细数据</li>
+                        <li>本地文件：输出文件夹（Output_folder）<b>读/写/新建/删除</b>权限，确保文件下载与生成</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS/Chrome残留进程）、允许os.system调用系统命令</li>
+                        <li>浏览器权限：允许Chrome浏览器最大化启动、允许文件自动下载、允许关闭所有窗口</li>
+                        <li>网络权限：允许访问马帮ERP官网（https://www.mabangerp.com）、钉钉开放平台，网络连接稳定无代理</li>
+                        <li>钉钉权限：钉钉机器人<b>群聊消息发送/文件上传</b>权限，对应泰国/菲律宾/印尼大群的机器人配置</li>
+                        <li>进程权限：允许终止WPS/Chrome进程，无系统进程保护限制，确保环境清理彻底</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：Login_info（马帮登录信息）、Output_folder（输出根路径）、splitAfter_filepath_all（分类文件路径字典）</li>
+                        <li>自定义工具模块：tools.py（提供get_time/extract_percentage/get_current_date等通用方法）</li>
+                        <li>马帮专属模块：login.py（mb_exit_login登出/ mb_login登录核心方法），实现登录状态管理</li>
+                        <li>通用工具类：CommonUtil（静态类，封装click通用点击方法，提供重试/激活/容错能力）</li>
+                        <li>图像资源：「加载中_图像」「加载中_图像2」（xbot_visual图像识别用，需与马帮ERP实际加载图标一致）</li>
+                        <li>元素标识：mb_（element_e75ea9c3>），马帮ERP所有页面元素的统一标识前缀，确保元素定位准确</li>
+                        <li>钉钉配置：dingtalk_config.py（钉钉机器人webhook、appkey、appsecret等配置，独立管理）</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有问题：绑定所有点击事件、图标旋转、全部联动 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i.fa-chevron-down');
+                if (icon) {
+                    icon.style.transform = btn.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+                }
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                    }
+                });
+                // 自身图标旋转同步
+                const allIcon = allBtn.querySelector('i.fa-chevron-down');
+                allIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（解决点不开问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类
+            document.querySelectorAll('.collapse-header i.fa-chevron-down').forEach(icon => {
+                icon.style.transform = 'rotate(0)';
+            });
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
