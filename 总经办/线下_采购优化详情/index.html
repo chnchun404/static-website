@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线下_采购优化详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+                transform: rotate(0) !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                线下_采购优化详情自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                采购成本优化自动化方案 | 马帮ERP数据筛选 · 采购单批量提取 · 历史数据比对 · 单价差异分析
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>企业内需对<b>线下采购单</b>进行成本优化分析，核心是提取马帮ERP中「采购中-已申请付款-未下单」的当前采购单，与历史「已完成」采购单按SKU精准匹配，计算**本次与上次采购的实际单价差异、降价金额、差异总金额**，生成标准化单价差异化比对表。</p>
+                <p class="mt-2">人工完成马帮ERP数据筛选、采购单信息提取、历史数据比对、公式计算等工作，存在<b>效率低、易出错、单价计算不精准、成本优化空间无法量化</b>等痛点，通过自动化流程实现采购数据端到端分析，精准识别成本优化点，提升采购决策效率。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">线下_采购优化详情</td>
+                            <td class="p-3 border border-grayBorder">总经办</td>
+                            <td class="p-3 border border-grayBorder">按需执行（手动触发）</td>
+                            <td class="p-3 border border-grayBorder">自动生成线下采购单价差异化比对表，量化成本优化空间</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/客户端 | 验证码类型：无 | 账号独立校验</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">采购单数据筛选、批量信息提取、登录状态校验</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS（Excel）</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">模板加载、数据填充、公式生成、结果导出</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">数据处理、自动化逻辑执行、异常监控、进程管理</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出文件类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP进程清理与环境初始化</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP采购数据多条件筛选</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python</td>
+                            <td class="p-3 border border-grayBorder">网页数据（内存提取）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">采购单批量信息提取（SKU/数量/价格）</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP</td>
+                            <td class="p-3 border border-grayBorder">结构化数据（内存）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">历史已完成采购数据精准匹配</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python</td>
+                            <td class="p-3 border border-grayBorder">结构化数据（内存）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">单价差异化自动计算与数据处理</td>
+                            <td class="p-3 border border-grayBorder">Python</td>
+                            <td class="p-3 border border-grayBorder">计算结果（内存）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">采购优化详情表自动生成</td>
+                            <td class="p-3 border border-grayBorder">WPS Excel+openpyxl</td>
+                            <td class="p-3 border border-grayBorder">XLSX（带公式）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS/Chrome残留进程，避免进程占用导致操作失败</li>
+                    <li>马帮ERP自动登出重登，校验当前登录用户有效性，避免账号错登导致数据错误</li>
+                    <li>采购管理页面多条件自动筛选（采购中+付款状态=已申请付款+平台状态=未下单），支持时间范围精准过滤</li>
+                    <li>采购单批量提取，按100条/页分页处理，自动计算总页数并批量获取SKU/名称/采购价/运费等核心信息</li>
+                    <li>同SKU历史采购数据精准匹配，自动筛选「日期最新、早于本次采购」的历史记录，排除同时间自比对情况</li>
+                    <li>实际单价自动计算（采购价+运费/采购数量），支持整数/浮点型数据自动转换，统一保留两位小数</li>
+                    <li>Excel模板自动填充数据，批量生成计算公式（实际单价/降价金额/差异总金额），并统一数值为「0.00」格式</li>
+                    <li>页面加载状态实时监控，图像识别「加载中」图标，最多循环600次检测，超时自动抛出异常</li>
+                    <li>通用点击工具类封装，元素点击前激活窗口，最多重试10次，确保元素可点击且操作有效</li>
+                    <li>输出文件自动命名（含时间戳）、指定路径存储，文件生成后校验存在性，确保输出成功并写入全局变量</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境初始化与进程清理 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境初始化与进程清理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS进程、关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>自动创建「处理完成」输出文件夹，支持文件夹已存在的容错处理，无需手动创建</li>
+                                <li>流程启动前强制初始化环境，确保无残留进程占用Excel模板或浏览器资源</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：马帮ERP登录状态校验 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：马帮ERP登录状态校验</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>流程启动时先执行登出操作，再通过全局变量Login_info重新登录，确保登录状态有效</li>
+                                <li>访问采购管理页面后，无法获取「当前用户名」元素文本则直接判定登录失效，抛出明确异常</li>
+                                <li>Chrome浏览器以无痕模式启动，页面加载超时设置为300s，超时直接终止流程并提示</li>
+                                <li>登录相关异常捕获完整堆栈信息，写入日志系统，方便问题排查</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：采购管理页面元素操作 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：采购管理页面元素操作</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>所有元素点击通过CommonUtil静态工具类实现，点击前先激活浏览器窗口，避免窗口后台导致点击无效</li>
+                                <li>元素点击最多重试10次，每次间隔1s，每次重试前检测元素是否显示，确保操作有效性</li>
+                                <li>点击操作包含合并延时，避免连续点击导致页面响应异常，操作后固定延时等待页面反馈</li>
+                                <li>10次重试失败则抛出「click timeout, element not exists」明确异常，记录目标元素标识</li>
+                                <li>支持忽略错误模式，非核心操作可选择不抛出异常，保证流程连续性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：页面加载状态监控 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：页面加载状态实时监控</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>通过xbot_visual图像识别监控「加载中_图像」，全局屏幕范围检测，确保无窗口遮挡遗漏</li>
+                                <li>最多循环600次检测（约10分钟），每1s检测一次，图标消失则立即退出监控，无需等待满次数</li>
+                                <li>图标消失后额外延时2s，确保页面数据完全加载，避免提前执行后续操作导致数据缺失</li>
+                                <li>600次循环后仍检测到加载图标，则判定加载失败，直接抛出「加载失败」异常</li>
+                                <li>所有数据筛选、分页、状态切换、搜索操作后，均强制执行加载状态监控，形成操作闭环</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：采购数据筛选 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：采购数据多条件筛选</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>筛选后检测到「暂无筛选的采购记录」元素则直接抛出异常，提示用户检查采购设置</li>
+                                <li>时间范围输入采用非模拟输入方式（simulative=False），确保数据格式正确，避免输入框校验失败</li>
+                                <li>分页设置为100条/页，设置后固定延时5s，确保分页参数生效，避免按默认页数处理导致数据遗漏</li>
+                                <li>获取总数据量后通过向上取整自动计算总页数，支持非整数页数，确保批量提取无遗漏</li>
+                                <li>重新筛选（时间范围/状态）后，再次校验数据数量，验证筛选条件是否生效</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤6：数据类型转换与计算 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤6：数据类型转换与计算</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>实际单价计算先尝试整型运算，捕获异常后自动切换为浮点型运算，兼容不同数据类型</li>
+                                <li>封装process_number统一数据处理方法，整数直接返回，浮点型保留两位小数，保证数据格式统一</li>
+                                <li>降价金额、差异总金额计算后均执行数据格式化，避免科学计数法或小数位数混乱</li>
+                                <li>采购数量参与乘法运算前强制转换为整型，确保数量为整数，符合业务逻辑</li>
+                                <li>无历史数据时跳过所有计算，对应字段留空，不触发计算异常，保证流程连续性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤7：Excel文件生成与校验 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤7：采购优化表生成与校验</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>通过openpyxl加载Excel模板，直接读取全局变量Template_File指定路径，确保模板一致性</li>
+                                <li>数据填充按固定列索引执行，本次采购数据、历史采购数据分开填充，避免列索引混乱</li>
+                                <li>公式生成后统一设置「0.00」数值格式，确保计算结果显示为两位小数，提升报表可读性</li>
+                                <li>文件保存后强制校验文件是否存在，不存在则抛出「文件输出失败，请开发者进行维护」明确异常</li>
+                                <li>输出文件路径成功写入全局变量glv['output_file_save_path']，方便后续流程调用或人工查看</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：采购中数据筛选与提取规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：采购中数据筛选与提取规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定筛选条件：「采购中」状态+「付款状态=已申请付款」+「平台状态=未下单」，不可随意修改</li>
+                                <li>时间范围通过get_date_range2自动获取指定周期，格式为「YYYY-MM-DD  00:00:00」至「YYYY-MM-DD  23:59:59」，非模拟输入</li>
+                                <li>分页设置为100条/页，按「总数据量/500」向上取整计算总页数，确保批量提取无遗漏</li>
+                                <li>提取核心字段：库存SKU、中文名称、采购时间、运费、采购价、采购数量，按固定顺序存储为结构化数据</li>
+                                <li>采购数量参与计算前转换为整型，采购价/运费支持整型/浮点型，确保后续计算精度</li>
+                                <li>采购单信息批量提取后存储于内存，按采购单号分组，方便后续历史数据匹配</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：历史已完成采购数据筛选规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：历史已完成采购数据筛选规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>历史数据筛选状态为「已完成」，与本次采购使用相同时间范围过滤，保证数据维度一致</li>
+                                <li>切换至「全部」采购页面筛选已完成数据，确保数据范围覆盖所有历史采购记录</li>
+                                <li>提取字段与采购中数据完全一致（库存SKU、中文名称、采购时间、运费、采购价、采购数量），保证后续匹配兼容性</li>
+                                <li>历史数据批量提取后存储为列表结构，按采购时间降序排列，方便最新记录筛选</li>
+                                <li>总数据量获取后同样按「总数据量/500」向上取整计算总页数，批量提取所有历史数据</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：SKU采购数据匹配规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：SKU采购数据匹配规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>匹配主键为「库存SKU」，确保同商品精准比对，忽略中文名称的细微差异</li>
+                                <li>采购时间转换为datetime对象（%Y-%m-%d %H:%M:%S）进行比对，确保时间精度到秒</li>
+                                <li>时间筛选规则：历史采购时间 < 本次采购时间，严格排除同期或后期采购记录</li>
+                                <li>排除规则：SKU一致且采购时间完全相同的记录直接跳过，避免同一条记录自比对</li>
+                                <li>多条历史记录筛选规则：循环遍历历史数据，实时保留日期最新的记录，确保比对时效性</li>
+                                <li>无匹配结果时，历史数据所有字段留空，不参与后续计算，保证流程连续性</li>
+                                <li>匹配结果仅保留一条最新历史记录，避免多条记录导致计算混乱</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：单价差异化比对表数据填充规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：单价差异化比对表数据填充规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>Excel模板固定为glv['Template_File']指定文件，工作表为第一个（索引0），不可随意替换或修改结构</li>
+                                <li>数据从第5行开始填充，保留前4行表头和说明信息，保证模板格式统一，提升报表可读性</li>
+                                <li>本次采购数据列：A(库存SKU)、B(中文名称)、C(本次采购时间)、D(本次采购数量)、E(本次采购价)、F(本次运费)</li>
+                                <li>历史采购数据列：H(上次采购时间)、I(上次采购数量)、J(上次采购价)、K(上次运费)，跳过G列（公式列）</li>
+                                <li>数据填充按列索引逐行写入，空值直接留空，不填充默认值，保证数据真实性</li>
+                                <li>本次与历史数据分开填充，先填充基础数据，再生成计算公式，避免数据覆盖</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则5：Excel公式自动生成规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：Excel公式自动生成规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>本次实际单价（G列）：公式=E{行号}+(F{行号}/D{行号})，采购价+单位运费，贴合实际采购成本</li>
+                                <li>上次实际单价（L列）：公式=J{行号}+(K{行号}/I{行号})，计算逻辑与本次完全一致，保证比对公平性</li>
+                                <li>降价金额（M列）：公式=G{行号}-L{行号}，本次实际单价-上次实际单价，负值表示涨价，直观展示价格变化</li>
+                                <li>差异总金额（N列）：公式=D{行号}*M{行号}，本次采购数量*单台降价金额，量化单批采购成本优化空间</li>
+                                <li>所有公式列统一设置「0.00」数值格式，避免计算结果格式混乱，保证报表美观统一</li>
+                                <li>公式生成时动态拼接行号，适配不同数据量，确保每一行公式对应正确的单元格</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则6：输出文件命名与存储规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：输出文件命名与存储规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>输出文件存储路径：glv['RETURN_FOLDER']/处理完成，自动创建「处理完成」文件夹，支持已存在容错</li>
+                                <li>文件命名规则：线下_采购优化详情_${时间戳}.xlsx，时间戳由get_time生成，确保文件名唯一性，避免覆盖</li>
+                                <li>文件格式固定为XLSX，兼容WPS/Excel 2016+所有版本，避免格式兼容问题导致文件无法打开</li>
+                                <li>文件保存后强制通过os.path.exists校验文件存在性，不存在则抛出明确异常，确保输出成功</li>
+                                <li>输出文件路径成功写入全局变量glv['output_file_save_path']，方便后续流程调用或人工定位文件</li>
+                                <li>所有输出文件均存储于指定文件夹，便于采购部门统一管理和查阅</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理）</li>
+                        <li>浏览器：Google Chrome 90.0+（支持无痕模式、窗口激活、元素定位、页面操作）</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持xlsx格式、公式计算、模板加载）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持语法特性和库调用）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别核心能力）</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>网页自动化：xbot、xbot_visual（影刀核心库，提供网页操作、图像识别能力）</li>
+                        <li>Excel操作：openpyxl>=3.0.10（模板加载、数据填充、公式生成、格式设置）</li>
+                        <li>数据处理：pandas（数据结构化处理）、math（内置，向上取整计算总页数）</li>
+                        <li>时间处理：datetime（内置，日期转换、时间比对）、time（内置，延时、等待、时间戳生成）</li>
+                        <li>文件操作：os（内置，路径处理、文件存在性校验）、shutil（内置，文件操作扩展）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录）、traceback（内置，异常堆栈信息捕获）</li>
+                        <li>数据解析：re（内置，正则匹配，备用数据解析）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>马帮ERP：采购管理模块、供应链模块的<b>查看/筛选/分页/登出/登录</b>权限，可访问采购中/已完成数据</li>
+                        <li>本地文件：模板文件（Template_File）<b>读</b>权限，输出文件夹（RETURN_FOLDER）<b>读/写/新建</b>权限</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS/Chrome残留进程）、允许os.system调用系统命令</li>
+                        <li>浏览器权限：允许Chrome浏览器以无痕模式运行、允许窗口激活和元素操作</li>
+                        <li>网络权限：允许访问马帮ERP官网（https://www.mabangerp.com），网络连接稳定无代理</li>
+                        <li>进程权限：允许终止WPS/Chrome进程，无系统进程保护限制，确保环境清理彻底</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：SETTING_TABLE（配置表）、RETURN_FOLDER（输出根路径）、Template_File（Excel模板路径）、Login_info（马帮登录信息）、output_file_save_path（输出文件路径）、retry_times（重试次数）</li>
+                        <li>Excel模板：Template_File指定的xlsx文件，包含固定表头、列名、数据起始行（第5行），不可随意修改结构</li>
+                        <li>自定义工具模块：tools.py（提供时间获取、日期范围计算、数据处理等通用方法）</li>
+                        <li>马帮专属模块：mb_close_box.py（马帮弹窗关闭，备用）、login.py（mb_exit_login登出/ mb_login登录核心方法）</li>
+                        <li>图像资源：「加载中_图像」（xbot_visual图像识别用，用于监控页面加载状态，需与实际页面图标一致）</li>
+                        <li>元素标识：mb_（element_e75ea9c3>），马帮ERP所有页面元素的统一标识前缀，确保元素定位准确</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有问题：绑定所有点击事件、图标旋转、全部联动 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i.fa-chevron-down');
+                if (icon) {
+                    icon.style.transform = btn.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+                }
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                    }
+                });
+                // 自身图标旋转同步
+                const allIcon = allBtn.querySelector('i.fa-chevron-down');
+                allIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（解决点不开问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类
+            document.querySelectorAll('.collapse-header i.fa-chevron-down').forEach(icon => {
+                icon.style.transform = 'rotate(0)';
+            });
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
