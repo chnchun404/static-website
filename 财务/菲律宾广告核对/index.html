@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菲律宾站点广告费用核对</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+                transform: rotate(0) !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                菲律宾站点广告费用核对-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                菲律宾多平台店铺广告费自动化导出与统计 | 石墨文档店铺信息导出 · 战斧浏览器多店铺批量导出 · 多平台数据清洗统计 · 广告费自动计算 · 明细文件生成 · 本土/跨境店差异化处理
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>财务/运营部门需完成<b>菲律宾Lazada/Shopee/TikTok（含本土/跨境店）多平台多店铺</b>的广告费自动化导出、精准统计与明细生成，核心是从<b>石墨文档</b>导出菲律宾店铺信息底表，通过<b>战斧浏览器</b>批量访问各平台店铺后台提取广告费原始数据，按平台规则清洗统计（含Lazada本土店12%税费自动计算、Shopee本土/跨境店智能识别、TikTok有效数据筛选），自动计算各店铺广告费合计金额并写入源文件，生成按「运营组长-运营」分类的标准化存储结构，实现菲律宾多平台广告费导出、统计、归档的自动化、标准化，解决人工统计效率低、税费计算不统一、数据易出错、文件管理混乱等痛点。</p>
+                <p class="mt-2">人工完成菲律宾多平台多店铺广告费导出、数据筛选、税费手动计算、金额合计、文件分类归档等工作，存在<b>操作繁琐、效率极低、税费计算偏差、数据统计错误、文件存储混乱、跨境/本土店规则混淆</b>等痛点，通过自动化流程实现多平台广告费的一键导出、智能清洗统计、合计金额自动写入、文件标准化归档，提升广告费处理效率与准确性。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">战斧_菲律宾店铺_广告费核对</td>
+                            <td class="p-3 border border-grayBorder">财务部</td>
+                            <td class="p-3 border border-grayBorder">月度执行（手动触发）</td>
+                            <td class="p-3 border border-grayBorder">自动导出石墨店铺信息、战斧多店铺广告费批量导出、多平台数据清洗统计、广告费合计自动计算、合计金额写入源文件、标准化文件存储</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/客户端/自动化工具/共享存储服务 | 验证码类型：点选验证 | 多账号/多店铺独立校验（按平台/店铺区分）</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">石墨文档</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">菲律宾店铺信息底表导出、店铺基础信息（平台/类型/运营/组长）数据源提供</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">战斧浏览器</td>
+                                <td class="p-3 border border-grayBorder">客户端/自动化工具</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">多店铺批量登录、各平台广告费一键导出、跨店铺操作管理、插件化自动化执行</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Lazada/Shopee/TikTok菲律宾后台</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes（按店铺）</td>
+                                <td class="p-3 border border-grayBorder">店铺广告费数据提取、交易历史查询、日期范围筛选、数据导出</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">跨系统逻辑执行、数据清洗、广告费统计、异常监控、进程管理</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS（Excel/CSV）</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">广告费合计金额写入、源文件编辑、标准化文件存储</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">共享存储服务</td>
+                                <td class="p-3 border border-grayBorder">网络共享</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">导出文件存储、统计结果归档、全局变量路径配置、多用户数据共享</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台/技术</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出/处理结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境清理与路径初始化</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备，标准化存储路径创建）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">石墨文档登录与店铺信息导出</td>
+                            <td class="p-3 border border-grayBorder">石墨文档+Python+pandas</td>
+                            <td class="p-3 border border-grayBorder">XLSX（菲律宾店铺信息底表）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">战斧浏览器登录与多店铺导出</td>
+                            <td class="p-3 border border-grayBorder">战斧浏览器+各平台后台+Python</td>
+                            <td class="p-3 border border-grayBorder">XLSX/CSV（各店铺广告费原始数据，按组长-运营分类）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">多平台广告费数据清洗统计</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+正则表达式</td>
+                            <td class="p-3 border border-grayBorder">浮点数（各店铺广告费合计金额）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">广告费明细自动化生成</td>
+                            <td class="p-3 border border-grayBorder">Python+openpyxl/csv</td>
+                            <td class="p-3 border border-grayBorder">无（合计金额写入对应广告费源文件）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止战斧浏览器/WPS残留进程（taskkill），关闭所有Chrome窗口，避免进程占用导致文件/页面操作失败</li>
+                    <li>按「年月+组长+运营」自动创建标准化存储路径，所有导出文件按分类归档，解决文件存储混乱问题，方便后续查询与统计</li>
+                    <li>石墨文档自动登录+点选验证码自动处理，一键导出菲律宾店铺信息底表，自动补全空值（运营名称/组长向下填充），生成标准化店铺信息数据源</li>
+                    <li>战斧浏览器自动化登录与店铺管理，支持菲律宾Lazada/Shopee/TikTok多店铺批量打开、广告费一键导出，按平台规则生成对应格式文件（Lazada-XLSX、Shopee-CSV）</li>
+                    <li>Shopee跨境店智能筛选与延后导出，自动将店铺信息中的Shopee跨境店单独归类，待其他店铺导出完成后统一处理，确保导出逻辑有序</li>
+                    <li>店铺信息灵活筛选，支持按「运营组长/店铺名称」精准筛选导出店铺，未匹配到有效店铺则直接抛出异常，避免无效执行</li>
+                    <li>Lazada广告费精准统计，仅筛选「WalletType=预付」且「Status=SUCCESS」的有效记录，本土店自动乘以1.12税费系数并保留2位小数，跨境店直接取原始金额</li>
+                    <li>Shopee本土/跨境店智能识别与统计，按「本土→跨境→本土」三轮尝试机制，自动适配不同店铺类型的字段规则（本土-Description/Remark、跨境-描述/备注），正则提取实际付费金额</li>
+                    <li>TikTok本土/跨境店差异化筛选，本土店筛选「Status=Success+Payment method含GMV Pay」记录，跨境店筛选「Status=Success」记录，自动取金额绝对值并合计</li>
+                    <li>广告费合计金额自动化写入，将统计后的合计金额直接写入对应广告费源文件的最后一列，生成「合计金额」列名，实现源文件数据完善</li>
+                    <li>多编码兼容处理，Shopee-CSV文件自动适配GBK/UTF-8编码，避免因编码问题导致的数据读取失败</li>
+                    <li>文件存在性校验，若店铺已存在当月广告费文件则直接跳过，避免重复导出与统计，提升执行效率</li>
+                    <li>全流程异常容错，单个店铺导出/统计失败则捕获异常并记录日志，跳过该店铺继续后续处理，确保流程连续性</li>
+                    <li>关键操作重试机制，石墨文档加载、战斧店铺打开、数据读取等核心操作均支持可配置重试次数，提升流程稳定性</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境清理与路径初始化 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境清理与文件路径初始化</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止战斧浏览器/WPS进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>标准化存储路径（明细/年月/源文件/战斧/组长-运营）通过os.makedirs+exist_ok=True实现自动创建与容错，无需提前手动创建</li>
+                                <li>路径初始化时基于当前时间自动计算上月年月，避免手动配置日期导致的错误，确保路径命名标准化</li>
+                                <li>全局变量核心路径（Output_Folder）未配置则直接抛出异常，避免后续文件操作因路径无效而失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：石墨文档登录与店铺信息导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：石墨文档登录与店铺信息导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>石墨文档打开时最多重试指定次数（retry_times），每次重试包含页面重载，超时则抛出「网络加载超时」明确异常，便于问题定位</li>
+                                <li>登录前检测是否已登录，已登录则直接跳过登录流程，避免重复登录导致的验证码触发，提升执行效率</li>
+                                <li>登录过程中触发点选验证码时，调用自动化验证工具处理，验证失败自动重试登录，提升登录成功率</li>
+                                <li>店铺信息表导出时最多重试指定次数，每次重试后关闭可能残留的「另存为」弹窗，避免弹窗遮挡导致导出失败</li>
+                                <li>导出后强制校验文件存在性，文件未生成则标记导出失败并继续重试，多次失败则抛出明确异常</li>
+                                <li>读取石墨店铺信息表时做数据格式容错，空值按规则填充（运营名称/组长向下填充、店铺类型填充为空），避免无效数据参与后续处理</li>
+                                <li>店铺信息表处理后校验有效数据量，无有效店铺记录则抛出「店铺信息未成功获取」异常，终止流程避免无效执行</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：战斧浏览器登录与多店铺导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：战斧浏览器登录与多店铺导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>战斧浏览器启动后自动检测并关闭「设备到期提醒」弹窗，避免弹窗遮挡后续操作元素，最多重试3次弹窗关闭，确保操作界面干净</li>
+                                <li>战斧浏览器登录支持可配置重试次数，账号密码验证失败则抛出明确异常，终止流程并提示检查账号密码</li>
+                                <li>店铺搜索时校验搜索结果数量，无结果则标记「战斧浏览器不存在该店铺」并跳过，不终止后续店铺处理</li>
+                                <li>店铺打开按钮校验，非「打开店铺」按钮则直接跳过，避免点击错误按钮导致的操作异常</li>
+                                <li>各平台店铺广告费导出均支持独立重试，单次导出失败则重启店铺插件并重新导出，最多重试指定次数</li>
+                                <li>导出后强制校验文件存在性与有效性，XLSX/CSV文件未生成则标记导出失败，跳过该店铺并继续后续店铺</li>
+                                <li>店铺导出完成后自动关闭店铺窗口，释放系统资源，避免多窗口打开导致的浏览器卡顿</li>
+                                <li>所有页面操作后均做元素存在性校验，元素未显示则等待后重试，避免页面加载未完成导致的操作无效</li>
+                                <li>TikTok店铺导出时若出现登录按钮则直接标记失败，提示需运营手动导出，避免无效重试</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：多平台广告费数据清洗统计 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：多平台广告费数据清洗统计</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>读取各平台广告费文件前先校验文件存在性，文件不存在则标记「店铺不存在广告费」并跳过，不参与统计</li>
+                                <li>Lazada读取XLSX文件时做sheet容错，默认读取第一个sheet，数据为空则标记「无有效数据」并返回0，不终止统计流程</li>
+                                <li>Shopee读取CSV文件时自动适配多表头格式（header5/header6），无需手动配置，适配不同平台导出规则</li>
+                                <li>Shopee统计采用「本土→跨境→本土」三轮尝试机制，某一机制失败则自动切换，提升统计成功率，所有机制失败则抛出异常并记录堆栈</li>
+                                <li>Shopee正则提取实际付费金额失败时，直接返回None并跳过该条数据，避免单条数据错误导致整表统计失败</li>
+                                <li>TikTok读取XLSX文件时自动适配多sheet格式，支持读取第一个/第三个sheet，未找到有效sheet则标记「无有效数据」</li>
+                                <li>TikTok数据筛选时做列名容错（中英文列名：Status/状态、Payment method/支付方式），自动识别并适配，避免KeyError</li>
+                                <li>所有平台金额统计时做数值精度控制，合计后保留2位小数，确保财务数据精度要求，避免浮点精度问题</li>
+                                <li>数据清洗后校验有效数据量，无有效数据则标记「导出的广告费中没有任何数据」并返回0，不参与后续写入</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：广告费明细生成与金额写入 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：广告费明细生成与金额写入</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>金额写入前再次校验文件可读写性，文件被占用则等待后重试，确保写入操作有效</li>
+                                <li>Lazada-XLSX文件写入时自动检测最后一列是否为「合计金额」，已存在则直接覆盖值，不存在则新增列并写入列名与值</li>
+                                <li>Shopee-CSV文件写入时采用追加模式，确保原有数据不被覆盖，仅在文件末尾写入合计金额信息</li>
+                                <li>金额写入时做非空校验，合计金额为0则不写入（标记无有效数据），避免无效数据写入源文件</li>
+                                <li>文件写入后强制保存并关闭，释放文件句柄，避免文件锁定导致后续无法访问</li>
+                                <li>单个店铺金额写入失败则捕获完整堆栈信息并记录日志，跳过该店铺继续后续处理，不终止整体流程</li>
+                                <li>全流程统计完成后，打印导出成功店铺数量与失败店铺信息，方便人工兜底处理</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：石墨文档店铺信息导出与处理规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：石墨文档店铺信息导出与处理规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定导出文件：菲律宾店铺信息.xlsx，为唯一店铺信息数据源，包含「运营名称、店铺名、店铺缩写、平台、店铺类型、组长」核心列</li>
+                                <li>导出格式固定为XLSX，文件命名规则为「菲律宾店铺信息.xlsx」，确保文件名唯一性与识别性</li>
+                                <li>导出路径固定为「{创建文件夹}/石墨文档」，所有石墨文件统一归档，方便后续读取</li>
+                                <li>数据处理规则：运营名称、组长列空值采用ffill向下填充，店铺类型列空值填充为空字符串，确保数据完整性</li>
+                                <li>数据转换规则：将店铺信息转换为以「组长」为键、店铺信息列表为值的字典结构，方便后续按组长筛选处理</li>
+                                <li>店铺筛选规则：支持按「import_text」全局变量筛选「组长/店铺缩写」，未配置则处理所有店铺，筛选无结果则抛出异常</li>
+                                <li>Shopee跨境店筛选规则：平台为Shopee且店铺类型非空的店铺，归为跨境店并单独存储，待其他店铺处理完成后统一导出</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：战斧浏览器多店铺导出规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：战斧浏览器多店铺导出规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>根存储路径：{共享存储}/明细/{YYYY-MM}/源文件/战斧，按「年月」归档，确保不同月份数据隔离</li>
+                                <li>子存储路径：{根路径}/{菲律宾YYYY年MM月XX组}/{XX组-运营名称}，按「组长-运营」二级分类，实现文件精细化管理</li>
+                                <li>文件命名规则：Lazada-「Lazada_店铺缩写_广告费.xlsx」、Shopee本土-「Shopee_店铺缩写_广告费.csv」、Shopee跨境-「Shopee_3PF_店铺缩写_广告费.csv」、TikTok-「TikTok_店铺缩写_广告费.xlsx」</li>
+                                <li>导出格式规则：Lazada/TikTok固定为XLSX，Shopee固定为CSV，与平台后台导出格式保持一致</li>
+                                <li>导出日期范围：固定为「上月1日~上月最后一日」，自动计算无需人工配置，确保统计数据为整月数据</li>
+                                <li>导出执行顺序：先处理非Shopee跨境店，再处理Shopee跨境店，确保跨境店单独归类处理，不与本土店混淆</li>
+                                <li>文件存在性规则：若目标路径已存在同名文件，则直接跳过导出，避免重复数据生成</li>
+                                <li>异常处理规则：单个店铺导出失败则加入错误日志，继续后续店铺处理，流程结束后打印失败店铺信息</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：多平台广告费提取统计规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：多平台广告费提取统计规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>Lazada提取规则：仅筛选「WalletType=预付」且「Status=SUCCESS」的记录，日期取「Date & Time」，金额取「Amount」，优惠券记录不参与统计（菲律宾专属规则）</li>
+                                <li>Lazada税费规则：本土店（店铺类型为空）金额×1.12并保留2位小数，跨境店（店铺类型非空）直接取原始金额，无汇率处理</li>
+                                <li>Shopee本土店提取规则：仅筛选「Description=Top-Up Credit/Top-Up and Free ads Credit/Auto Top-Up」的记录，金额取「Amount」；「Top-Up and Free ads Credit」类型通过正则「Paid Credit: (\d+\.\d+)」提取实际付费金额</li>
+                                <li>Shopee跨境店提取规则：仅筛选「描述=充值额度/充值和免费广告额度/自动充值」的记录，金额取「总额」；「充值和免费广告额度」类型通过正则「付费额度：(\d+\.\d+)」提取实际付费金额</li>
+                                <li>Shopee编码规则：读取CSV文件时先尝试GBK编码，失败则自动切换为UTF-8编码，确保数据正常读取</li>
+                                <li>TikTok本土店提取规则：仅筛选「Status=Success」且「Payment method包含GMV Pay」的记录，金额取「Amount」并取绝对值</li>
+                                <li>TikTok跨境店提取规则：仅筛选「Status=Success」的记录，金额取「Amount」并取绝对值，无额外筛选条件</li>
+                                <li>TikTok sheet规则：优先读取第一个和第三个sheet，无有效数据则跳过，支持多sheet数据融合统计</li>
+                                <li>通用统计规则：所有平台仅统计有效充值记录，过滤退款、取消等无效记录，金额合计后保留2位小数</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：广告费合计金额写入规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：广告费合计金额写入规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>写入前置校验：先校验文件存在性与可读写性，文件不存在/不可写则跳过，不执行写入操作</li>
+                                <li>Lazada-XLSX写入规则：在文件最后一列写入，若最后一列列名为「合计金额」则直接覆盖单元格值，否则新增列并写入「合计金额」列名与对应值</li>
+                                <li>Shopee-CSV写入规则：在文件末尾新增一行，写入「合计金额：{金额}」，保持CSV文件格式简单易读</li>
+                                <li>TikTok-XLSX写入规则：同Lazada规则，在最后一列写入合计金额，确保与Lazada写入格式统一</li>
+                                <li>数值规则：合计金额为0时不执行写入操作，避免无效数据污染源文件</li>
+                                <li>保存规则：写入完成后强制保存并关闭文件，释放文件句柄，确保数据持久化且无文件锁定</li>
+                                <li>溯源规则：合计金额直接写入源文件，不生成额外统计文件，确保数据溯源性，方便人工核对</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则5：输出文件与全局变量传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：输出文件与全局变量传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>输出文件类型：支持XLSX/CSV两种格式，与平台后台导出格式一致，确保兼容性，可直接用WPS/Excel打开编辑</li>
+                                <li>文件存储特性：所有文件按「年月+组长+运营」分类归档，路径层级清晰，支持多用户共享访问，方便团队协作</li>
+                                <li>核心入参全局变量（glv）：retry_times（重试次数，整数）、Output_Folder（输出根路径，绝对路径）、import_text（筛选条件，字符串）</li>
+                                <li>过程变量全局变量（glv）：shop_name_list（待处理店铺列表，字典）、details_filepath（明细文件路径，字符串）、error_shop_log（失败店铺日志，列表）</li>
+                                <li>变量类型规范：路径类为绝对路径、次数类为整数、金额类为浮点数（保留2位）、日期类为标准化字符串（YYYY-MM）</li>
+                                <li>元素标识全局规范：zf_（战斧浏览器元素前缀）、ty_（通用元素前缀）、la_（Lazada元素前缀）、sp_（Shopee本土元素前缀）、sp_3pf_（Shopee跨境元素前缀）、tk_（TikTok元素前缀），所有元素标识固定，确保定位准确</li>
+                                <li>全局变量生命周期：贯穿整个流程，流程结束后保留关键变量（如details_filepath、error_shop_log），方便问题排查与日志分析</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理与路径操作）</li>
+                        <li>浏览器：Google Chrome 90.0+（支持石墨文档登录、点选验证码处理、多页面加载）</li>
+                        <li>自动化工具：战斧浏览器（最新版，支持店铺管理、插件化自动化、多账号切换、菲律宾各平台后台访问）</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持XLSX/CSV格式、无锁文件读写、多编码兼容）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持数据处理、自动化操作、文件读写）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、窗口管理核心能力）</li>
+                        <li>存储服务：网络共享存储/本地磁盘（支持多级文件夹创建、XLSX/CSV文件写入、多用户访问，需固定共享路径）</li>
+                        <li>网络环境：稳定的网络连接，可正常访问石墨文档、战斧浏览器、菲律宾Lazada/Shopee/TikTok后台，无代理限制</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>自动化操作：xbot、xbot_visual（影刀核心库，网页操作、图像识别、窗口管理、文件下载、进程管理）</li>
+                        <li>数据处理：pandas（数据读取、清洗、筛选、统计，支持XLSX/CSV多格式）、numpy（浮点精度控制、数值运算）</li>
+                        <li>Excel操作：openpyxl（XLSX文件读写、单元格编辑、列新增，支持Excel 2007+格式）</li>
+                        <li>CSV操作：csv（内置，CSV文件读写、追加写入，支持多编码兼容）</li>
+                        <li>文件操作：os（路径处理、文件夹创建、进程调用）、glob（文件路径匹配、多文件遍历）</li>
+                        <li>正则处理：re（内置，Shopee实际付费金额精准提取、数据匹配）</li>
+                        <li>时间处理：datetime（内置，日期计算、格式转换、年月获取）、dateutil.relativedelta（上月年月计算）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录）、traceback（内置，异常堆栈信息捕获）</li>
+                        <li>窗口操作：xbot.win32（内置，窗口激活、键盘指令、鼠标操作、进程终止）</li>
+                        <li>验证码处理：xbot_extensions.activity_jfbym（点选验证码自动化处理，支持石墨文档验证码）</li>
+                        <li>战斧扩展：xbot_extensions.activity_f31a891f（战斧浏览器店铺管理、插件启动、登录、多店铺操作）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>石墨文档：拥有「菲律宾店铺信息」表格的「查看/导出/下载」权限，可正常访问表格内容，无下载限制</li>
+                        <li>战斧浏览器：拥有管理员账号权限，可「登录/管理店铺/打开店铺/启动插件」，支持菲律宾各平台店铺批量操作</li>
+                        <li>菲律宾各平台后台：按店铺拥有「登录/访问广告模块/查询交易历史/导出数据」权限，可查看广告费明细，无操作次数限制</li>
+                        <li>Shopee跨境店：拥有店铺「登录/登出/广告数据导出」权限，支持多账号切换，账号无操作时长限制</li>
+                        <li>存储服务：输出根路径（glv['Output_Folder']）的「读/写/新建/删除」权限，可创建多级子文件夹并写入/编辑文件</li>
+                        <li>系统权限：允许执行taskkill命令（终止残留进程）、允许os.system调用系统命令、允许创建多进程/多线程</li>
+                        <li>浏览器权限：允许Chrome/战斧浏览器最大化启动、允许同时打开多个窗口、允许非模拟点击/输入，支持插件化运行</li>
+                        <li>文件权限：允许读取/写入/编辑XLSX/CSV格式文件，无文件加密/保护限制，生成的文件可被多用户访问/编辑</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：retry_times、Output_Folder、import_text、shop_name_list、details_filepath、error_shop_log</li>
+                        <li>自定义工具模块：tools.py（提供get_time/convert_to_ymd/get_last_month_range/get_date_range等方法，时间处理、日期转换、文件查找）</li>
+                        <li>战斧扩展模块：xbot_extensions.activity_f31a891f（zf_Main，战斧浏览器登录、插件启动、店铺管理、多店铺导出）</li>
+                        <li>验证码扩展模块：xbot_extensions.activity_jfbym（human_click/cs_space_same_object_captcha，点选验证码自动化处理）</li>
+                        <li>自定义业务类：Shimo（石墨文档操作封装，登录、店铺信息导出）、Zhanfu（战斧浏览器+多平台广告费导出核心封装）、Set_WorkBook（广告费统计+金额写入核心封装）</li>
+                        <li>通用工具类：CommonUtil（静态类，封装通用点击方法，提供重试/激活/容错能力，禁止实例化，提升页面操作成功率）</li>
+                        <li>元素标识配置：所有页面元素标识（zf_/ty_/la_/sp_/sp_3pf_/tk_）固定配置，与实际页面元素一一对应，确保定位准确</li>
+                        <li>图像资源：点选验证码背景/确认按钮图像、平台加载中图像、弹窗关闭图像，需与实际页面图像一致，确保识别准确性</li>
+                        <li>配置常量：tax_rate（Lazada本土店税费1.12）、retry_times（默认重试次数），可按需在全局变量中配置修改</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有问题：绑定所有点击事件、图标旋转、全部联动 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i.fa-chevron-down');
+                if (icon) {
+                    icon.style.transform = btn.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+                }
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                    }
+                });
+                // 自身图标旋转同步
+                const allIcon = allBtn.querySelector('i.fa-chevron-down');
+                allIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（解决点不开问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类
+            document.querySelectorAll('.collapse-header i.fa-chevron-down').forEach(icon => {
+                icon.style.transform = 'rotate(0)';
+            });
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
