@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调拨单号同步</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+                transform: rotate(0) !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                调拨单号同步-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                运单号与调拨记录自动化匹配方案 | 对内表格运单号提取 · 马帮ERP调拨记录导出 · 运单号模糊匹配 · 调拨信息提取 · 标准化Excel生成
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>计划/供应链部门需将<b>对内表格中鹏远sheet的运单号</b>与<b>马帮ERP菲律宾2/3仓分仓调拨记录</b>进行精准匹配，核心是提取对内表格非空运单号，从马帮ERP筛选「待签收状态」的菲律宾2/3仓调拨记录，通过<b>运单号与发货备注模糊匹配</b>，获取对应<b>调拨单号（批次编号）、目标仓库信息</b>，生成标准化Excel明细文件，实现调拨单号与运单号的关联同步。</p>
+                <p class="mt-2">人工完成对内表格运单号筛选、马帮ERP调拨记录手动导出、运单号逐行匹配、调拨信息人工录入等工作，存在<b>效率低、易遗漏、模糊匹配准确率低、多仓数据整合繁琐、Excel格式不统一</b>等痛点，通过自动化流程实现运单号与调拨记录端到端匹配，精准提取调拨相关信息，提升调拨单号同步效率与准确性。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮_调拨批次号同步至计划_菲律宾</td>
+                            <td class="p-3 border border-grayBorder">供应链部</td>
+                            <td class="p-3 border border-grayBorder">每日执行（自动触发）</td>
+                            <td class="p-3 border border-grayBorder">自动提取运单号、导出调拨记录、模糊匹配数据，生成含调拨单号/仓库/运单号的标准化Excel明细</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/客户端/共享存储服务 | 验证码类型：无 | 账号独立校验</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">分仓调拨记录筛选、批量导出、登录状态校验、仓库条件过滤</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS（Excel）</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">运单号提取、调拨记录读取、数据匹配、标准化明细生成</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">数据处理、自动化逻辑执行、异常监控、进程管理</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">共享存储服务</td>
+                                <td class="p-3 border border-grayBorder">网络共享</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">对内表格存储、调拨记录数据源存储、生成明细文件归档</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出文件类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境初始化与残留进程清理</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">对内表格鹏远sheet运单号提取</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+共享存储</td>
+                            <td class="p-3 border border-grayBorder">无（内存运单号列表）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP登录校验与调拨页面访问</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python+xbot</td>
+                            <td class="p-3 border border-grayBorder">无（页面准备）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">菲律宾2/3仓调拨记录条件筛选与导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+xbot+xbot_visual</td>
+                            <td class="p-3 border border-grayBorder">XLS（调拨记录原始数据）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">运单号与调拨记录模糊匹配</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas</td>
+                            <td class="p-3 border border-grayBorder">结构化数据（内存字典）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">标准化调拨明细Excel生成</td>
+                            <td class="p-3 border border-grayBorder">Python+openpyxl</td>
+                            <td class="p-3 border border-grayBorder">XLSX（调拨单号匹配明细）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">生成文件路径全局存储</td>
+                            <td class="p-3 border border-grayBorder">Python+全局变量glv</td>
+                            <td class="p-3 border border-grayBorder">无（路径参数存储）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS残留进程（taskkill），关闭所有Chrome窗口，避免进程占用导致文件操作失败</li>
+                    <li>马帮ERP自动登出重登，通过全局变量login_info校验登录有效性，避免账号错登/过期导致数据提取失败</li>
+                    <li>对内表格自动识别含「鹏远」字样的sheet，筛选非空运单号并去重，生成全局运单号匹配列表，确保匹配数据源有效性</li>
+                    <li>马帮ERP分仓调拨页面多条件自动筛选（待签收状态+菲律宾2/3仓），2仓直接选择目标仓库、3仓关键字精准搜索，适配不同仓库筛选逻辑</li>
+                    <li>调拨记录导出前自动取消「合并共有项」复选框勾选状态，确保导出数据为明细级，避免数据聚合导致匹配失败</li>
+                    <li>运单号与调拨记录「发货备注」模糊匹配，支持一个运单号匹配多个调拨单号，自动聚合相同运单号的调拨信息</li>
+                    <li>自动生成标准化调拨明细Excel，含表头纯色填充、内容居中、固定列宽、相同运单号单元格合并，提升文件可读性与规范性</li>
+                    <li>页面加载状态图像识别监控（加载中_图像），最多循环300次检测，超时自动抛出异常，确保筛选/导出操作完成</li>
+                    <li>通用点击工具类CommonUtil封装，元素点击前激活窗口，最多重试10次，支持忽略错误模式，确保页面操作稳定性</li>
+                    <li>调拨记录与生成明细按仓库分类存储，自动创建多级文件夹（分仓调拨-数据源/菲律宾2/3仓/处理完成），支持文件夹已存在容错</li>
+                    <li>生成明细文件路径写入全局变量glv['Template_File']，方便后续文件归档与同步，文件命名含当前日期确保唯一性</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境初始化与进程清理 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境初始化与进程清理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>流程启动前强制初始化环境，确保无残留进程占用Excel文件或浏览器资源，避免文件读写权限冲突</li>
+                                <li>无需提前创建存储文件夹，所有多级文件夹通过os.makedirs+exist_ok=True实现自动创建与容错，适配重复执行场景</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：对内表格运单号提取 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：对内表格鹏远sheet运单号提取</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>读取对内表格时通过fillna('')填充所有空值，避免空值导致的列筛选与匹配错误</li>
+                                <li>强制筛选「运单号」列非空数据，若筛选后运单号列表长度为0，直接抛出「对内表格数据异常」明确异常，终止流程</li>
+                                <li>运单号转换为字符串类型后通过set去重，生成全局WAYBILL_NUMBERS列表，避免重复匹配导致的明细数据冗余</li>
+                                <li>自动遍历表格所有sheet，仅识别含「鹏远」字样的sheet为目标sheet，无匹配sheet时会因后续运单号为空触发异常</li>
+                                <li>通过pandas读取Excel支持xlsx/xls等常见格式，兼容对内表格的不同文件格式存储</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：马帮ERP登录与页面访问 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：马帮ERP登录状态校验与页面访问</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>流程启动时先执行mb_exit_login登出操作，再通过全局变量login_info调用mb_login重新登录，确保登录状态绝对有效</li>
+                                <li>马帮调拨页面以最大化模式启动，页面加载超时设置为300s，适配大数量调拨记录数据加载</li>
+                                <li>页面启动后执行wait_load_completed等待+check_loading_status加载监控，双重确保页面完全加载，避免元素未渲染导致操作失败</li>
+                                <li>所有页面操作异常捕获完整堆栈信息（traceback），写入xbot.app.logging日志系统，方便问题定位与排查</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：菲律宾2/3仓调拨记录导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：菲律宾2/3仓调拨记录条件筛选与导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>2/3仓调拨记录导出均支持重试机制，按全局变量glv['retry_times']设置的次数重试，单次失败不终止流程，提升导出成功率</li>
+                                <li>导出操作后循环300次检测「操作成功」弹出框，确保导出请求提交成功，超时则抛出「导出数据加载异常」</li>
+                                <li>导出前检测「合并共有项」复选框状态，若为勾选则自动取消，确保导出明细级数据，避免发货备注信息聚合</li>
+                                <li>文件下载通过xbot原生download方法实现，dialog_timeout设置为800s，适配大体积调拨记录文件下载耗时</li>
+                                <li>下载完成后强制通过os.path.exists校验文件存在性，不存在则触发重试，多次重试失败则抛出明确异常</li>
+                                <li>导出失败时自动检测并关闭「另存为」弹窗，避免弹窗遮挡导致后续重试操作无效</li>
+                                <li>3仓因无直接选择项，通过关键字输入框搜索「菲律宾3仓」，并将仓库名称写入全局变量glv['Cangku']，确保筛选准确性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：运单号与调拨记录匹配 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：运单号与调拨记录模糊匹配</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>调拨记录原始文件（xls）先转换为Excel97格式，解决pandas读取xls格式的兼容性问题</li>
+                                <li>读取调拨记录时强制将「批次编号（调拨单号）」设为字符串类型，避免数字型编号丢失前导零</li>
+                                <li>筛选调拨记录中「发货备注」非空数据，仅对有效备注数据进行匹配，减少无效循环提升效率</li>
+                                <li>运单号与发货备注模糊匹配前，将运单号强制转换为字符串类型，避免类型不一致导致的匹配失败</li>
+                                <li>采用字典存储匹配结果，支持一个运单号匹配多个调拨单号，自动聚合调拨单号列表，避免数据覆盖</li>
+                                <li>菲律宾2/3仓调拨记录数据合并为一个列表后统一匹配，确保多仓数据无遗漏，匹配逻辑一致</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤6：标准化明细Excel生成 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤6：标准化调拨明细Excel生成与保存</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>生成Excel时通过openpyxl创建工作簿，手动设置表头、列宽、单元格样式，确保文件格式标准化</li>
+                                <li>调拨单号单元格强制设置为文本格式（number_format='@'），避免长编号科学计数法显示</li>
+                                <li>数据填充完成后立即执行wb.close()关闭工作簿，释放文件句柄，避免文件被占用导致后续操作失败</li>
+                                <li>生成文件路径写入全局变量glv['Template_File']，确保后续模块可直接调用，无需重复拼接路径</li>
+                                <li>表头设置纯色填充与居中对齐，内容单元格按需居中，提升文件视觉效果与可读性</li>
+                                <li>自动合并相同运单号的单元格，减少明细文件冗余，方便人工查看与使用</li>
+                                <li>所有Excel操作异常捕获完整堆栈信息，写入日志并重新抛出异常，确保问题可追溯</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤7：通用页面操作 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤7：通用点击工具类与页面监控</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>所有元素点击统一通过CommonUtil.click静态方法实现，点击前先执行page.activate激活浏览器窗口，避免窗口后台导致点击无效</li>
+                                <li>元素点击最多重试10次，每次间隔1s，每次重试前检测元素是否显示，确保操作对象存在</li>
+                                <li>点击操作内置merge_time合并延时（0.3s），避免连续点击导致页面响应异常，操作后固定等待1s获取反馈</li>
+                                <li>10次重试失败则抛出「click timeout, element not exists」明确异常，记录目标元素标识（mb_前缀），方便定位</li>
+                                <li>支持ignore_error忽略错误模式，非核心操作可选择不抛出异常，保证流程整体连续性</li>
+                                <li>页面加载状态通过check_loading_status监控，最多循环300次检测加载图标，超时则抛出「加载失败」异常</li>
+                                <li>所有筛选、导出操作后均强制执行加载状态监控，形成操作-等待的闭环，避免提前执行后续操作</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 - 绑定唯一ID，确保联动 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：对内表格运单号提取规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：对内表格鹏远sheet运单号提取规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>数据源文件：全局变量glv['inputfile_path']指定的对内表格，支持网络共享路径与本地路径，需为Excel格式（xlsx/xls）</li>
+                                <li>目标sheet筛选：自动遍历所有sheet，仅提取名称含「鹏远」字样的sheet数据，其他sheet忽略</li>
+                                <li>运单号筛选：仅提取「运单号」列非空数据，空值数据直接过滤，不参与后续匹配</li>
+                                <li>数据处理：运单号转换为字符串类型，通过集合去重后生成全局匹配列表，确保匹配唯一性</li>
+                                <li>异常判定：若提取后运单号列表长度为0，直接判定为数据异常，终止流程并抛出提示</li>
+                                <li>数据存储：提取的运单号存储在全局变量WAYBILL_NUMBERS，供后续匹配模块直接调用</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：马帮ERP调拨记录筛选导出规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：马帮ERP调拨记录筛选与导出规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定访问页面：马帮ERP分仓调拨发货页面（https://www.mabangerp.com/index.php?mod=allocationwarehouse.shipments&platform=other&version=1），不可切换至其他页面</li>
+                                <li>通用筛选条件：所有仓库均需勾选「待签收」状态，确保提取的是有效调拨记录</li>
+                                <li>仓库筛选逻辑：菲律宾2仓直接选择目标仓库、菲律宾3仓通过关键字输入框搜索「菲律宾3仓」，适配平台筛选逻辑</li>
+                                <li>导出前配置：必须取消「合并共有项」复选框勾选状态，确保导出明细级数据，包含完整发货备注</li>
+                                <li>导出模板：固定选择「菲律宾1」导出模板，确保导出字段包含批次编号、目标仓库、发货备注等核心字段</li>
+                                <li>文件命名规则：{仓库名称}_分仓调拨数据_{当前日期(YYYY-MM-DD)}.xls，如菲律宾2仓_分仓调拨数据_2026-01-29.xls</li>
+                                <li>存储路径：glv['Output_folder']/分仓调拨-数据源/{仓库名称}，按仓库分类存储，自动创建多级文件夹</li>
+                                <li>导出校验：文件下载完成后必须通过os.path.exists校验存在性，不存在则触发重试机制</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：运单号与调拨记录匹配规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：运单号与调拨记录模糊匹配规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>匹配主键：对内表格「运单号」与调拨记录「发货备注」，采用模糊匹配规则（运单号字符串包含在发货备注中）</li>
+                                <li>数据预处理：调拨记录需筛选「发货备注」非空数据，运单号强制转换为字符串类型，避免类型不匹配</li>
+                                <li>多仓数据合并：菲律宾2/3仓调拨记录数据合并为一个列表后统一匹配，确保多仓数据无遗漏</li>
+                                <li>一对多处理：支持一个运单号匹配多个调拨单号，调拨单号以列表形式聚合，避免数据覆盖</li>
+                                <li>匹配结果存储：以字典形式存储，键为运单号、值为含调拨单号列表和目标仓库的字典，如{运单号:{'调拨单号':[xxx,yyy],'目标仓库':'菲律宾2仓'}}</li>
+                                <li>无效数据过滤：无匹配运单号的调拨记录直接忽略，不参与后续明细生成</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：标准化明细Excel生成规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：标准化调拨明细Excel生成规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>文件格式：固定为XLSX格式，兼容WPS/Excel所有版本，支持钉钉预览与本地编辑</li>
+                                <li>表头规范：固定为「目标仓库、调拨批次号、运单号」三列，不可新增/删除/修改列名与顺序</li>
+                                <li>样式规范：表头采用FDEADA纯色填充+居中对齐，内容单元格按需居中，调拨批次号设为文本格式</li>
+                                <li>列宽规范：固定列宽（目标仓库15、调拨批次号30、运单号20），确保内容完整显示</li>
+                                <li>数据填充：一个运单号对应多个调拨单号时，逐行填充调拨单号，目标仓库与运单号自动复用</li>
+                                <li>单元格合并：相同运单号的单元格自动合并，减少文件冗余，提升可读性</li>
+                                <li>无数据处理：无匹配数据时不生成空文件，直接因字典为空导致填充失败，触发异常日志记录</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则5：文件命名与存储规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：输出文件命名与存储规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>调拨记录存储：glv['Output_folder']/分仓调拨-数据源/{仓库名称}，按仓库分类，文件格式XLS</li>
+                                <li>生成明细存储：glv['Output_folder']/处理完成，所有生成明细统一归档，方便查找</li>
+                                <li>明细文件命名：菲律宾-调拨批次号数据_{当前日期(YYYY-MM-DD)}.xlsx，含地区与日期，确保唯一性</li>
+                                <li>路径存储：生成明细文件绝对路径写入全局变量glv['Template_File']，供后续模块调用</li>
+                                <li>文件权限：生成文件继承文件夹权限，确保后续归档、同步操作可正常读取</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则6：全局变量数据传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则6：全局变量数据传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>核心入参：glv['inputfile_path']（对内表格路径）、glv['login_info']（马帮登录信息）、glv['Output_folder']（输出根路径）、glv['retry_times']（重试次数），由外部配置传入</li>
+                                <li>全局变量：WAYBILL_NUMBERS（运单号匹配列表）、NOW_DATE（当前日期YYYY-MM-DD），流程内全局生效</li>
+                                <li>中间变量：glv['Cangku']（菲律宾3仓名称），用于仓库关键字搜索，临时存储</li>
+                                <li>输出变量：glv['Template_File']（生成明细文件绝对路径），供后续文件操作模块调用</li>
+                                <li>变量类型：所有路径类变量为绝对路径，避免相对路径导致的文件找不到问题；日期为字符串类型，格式统一</li>
+                                <li>变量生命周期：全局变量贯穿整个流程，流程结束后不自动销毁，可用于问题排查</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理）</li>
+                        <li>浏览器：Google Chrome 90.0+（支持最大化启动、窗口激活、元素定位、原生文件下载）</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持xlsx/xls格式、无锁文件读写）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持pandas数据处理、openpyxl Excel操作）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、文件下载核心能力）</li>
+                        <li>存储服务：网络共享存储/本地磁盘（支持Excel文件读取、生成文件写入，路径可访问）</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>网页自动化：xbot、xbot_visual（影刀核心库，提供网页操作、图像识别、文件下载能力）</li>
+                        <li>Excel操作：openpyxl（新建工作簿、样式设置、单元格合并、数据填充）、pandas（Excel读取、数据筛选、空值处理）</li>
+                        <li>数据处理：re（内置，正则匹配）、math（内置，数值计算）</li>
+                        <li>时间处理：datetime（内置，日期获取、格式转换）、time（内置，延时、等待）</li>
+                        <li>文件操作：os（内置，路径处理、文件夹创建、文件存在性校验）、shutil（内置，文件操作扩展）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录）、traceback（内置，异常堆栈信息捕获）</li>
+                        <li>样式设置：openpyxl.styles（Alignment居中、PatternFill填充、Border边框等）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>马帮ERP：分仓调拨模块的<b>查看/筛选/导出/登出/登录</b>权限，可访问菲律宾2/3仓调拨记录明细</li>
+                        <li>存储服务：对内表格路径（glv['inputfile_path']）和输出路径（glv['Output_folder']）的<b>读/写/新建/删除</b>权限</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS残留进程）、允许os.system调用系统命令</li>
+                        <li>浏览器权限：允许Chrome浏览器最大化启动、允许文件自动下载、允许关闭所有窗口、允许元素定位与点击</li>
+                        <li>网络权限：允许访问马帮ERP官网，网络连接稳定无代理，支持大文件下载</li>
+                        <li>进程权限：允许终止WPS/Chrome进程，无系统进程保护限制，确保环境清理彻底</li>
+                        <li>文件权限：允许读取/写入XLS/XLSX格式文件，无文件加密/保护限制</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：inputfile_path、login_info、Output_folder、retry_times、Template_File、Cangku</li>
+                        <li>自定义工具模块：tools.py（提供get_past_date等时间处理方法）</li>
+                        <li>马帮专属模块：login.py（mb_exit_login登出/ mb_login登录核心方法），实现登录状态管理</li>
+                        <li>自定义业务类：Maban（马帮调拨记录导出）、DataCleaner（数据匹配与明细生成），封装核心业务逻辑</li>
+                        <li>通用工具类：CommonUtil（静态类，封装click通用点击方法，提供重试/激活/容错能力）</li>
+                        <li>图像资源：「加载中_图像」（xbot_visual图像识别用，需与马帮ERP实际加载图标一致）</li>
+                        <li>元素标识：mb_（element_e75ea9c3>），马帮ERP所有页面元素的统一标识前缀，确保元素定位准确</li>
+                        <li>外部扩展模块：mb_close_box.py（马帮弹窗关闭）、各类xbot_extensions扩展，提供平台专属能力</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有问题：绑定所有点击事件、图标旋转、全部联动 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i.fa-chevron-down');
+                if (icon) {
+                    icon.style.transform = btn.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+                }
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(180deg)';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.querySelector('i.fa-chevron-down').style.transform = 'rotate(0)';
+                    }
+                });
+                // 自身图标旋转同步
+                const allIcon = allBtn.querySelector('i.fa-chevron-down');
+                allIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0)';
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（解决点不开问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类
+            document.querySelectorAll('.collapse-header i.fa-chevron-down').forEach(icon => {
+                icon.style.transform = 'rotate(0)';
+            });
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
