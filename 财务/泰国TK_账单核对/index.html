@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰国TK_账单核对</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                泰国TK_账单核对-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                泰国TK跨境店多店铺账单自动化核对 | 石墨文档核心文件导出 · 马帮/海仓OMS数据导出 · 基础数据成本价自动更新 · TK本土/跨境店模板区分生成 · 成本/退货/账单数据匹配 · 回执单三类异常自动统计
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>财务部门需完成<b>泰国TK跨境店多店铺</b>账单自动化核对与标准化模板处理，核心是从<b>石墨文档</b>导出泰国店铺信息、线下付款等核心文件，通过<b>马帮ERP</b>导出样品费数据、<b>海仓OMS系统</b>导出退货订单、取消订单已出库两类数据，整合TK泰国后台订单/账单原始数据，完成<b>基础数据文件</b>统一成本价自动更新、退货/取消订单数据同步，按店铺维度批量生成标准化TK核对模板（区分本土店/跨境店3PF，含订单、成本、妥投失败、顾客退货、账单明细、汇总等核心Sheet），实现成本与虚拟SKU自动匹配、退货订单与独立仓数据二次核对、账单费用项标准化映射，自动生成回执单统计成本匹配失败SKU、新增费用名称、店铺订单空白SKU三类异常数据，解决人工整理效率低、数据核对繁琐、成本/退货/账单数据不一致、模板样式不统一、异常数据无统计、样品费手动计算、本土/跨境店模板区分混乱等痛点。</p>
+                <p class="mt-2">人工完成泰国TK跨境店多店铺账单核对、成本价更新、退货数据匹配、模板Sheet整理等工作，存在<b>操作繁琐、效率极低、数据匹配易出错、模板样式混乱、异常数据无统一统计、样品费手动核算、本土/跨境店模板区分不清晰、长数字自动转科学计数法</b>等痛点，通过自动化流程实现多源数据一键导出整合、成本价自动更新、模板标准化生成、数据智能匹配、异常信息统计归档，实现线下付款/广告费文件的自动化颜色标记，方便财务人工兜底核对。</p>
+                <p class="mt-2"><b>核心特殊点</b>：TK店无测评需求，流程中剔除所有测评相关数据处理环节，重点强化样品费自动核算、本土/跨境店模板差异化生成、独立仓退货数据二次核对能力。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">TIKTOK_每月财务明细汇总</td>
+                            <td class="p-3 border border-grayBorder">财务部</td>
+                            <td class="p-3 border border-grayBorder">月度执行（手动触发）</td>
+                            <td class="p-3 border border-grayBorder">石墨文档核心文件导出、马帮样品费/海仓退货/取消订单导出、基础数据成本价自动更新、TK本土/跨境店模板批量生成、成本/退货/账单数据智能匹配、独立仓数据二次核对、线下付款/广告费文件颜色标记、回执单三类异常数据统计、长数字格式防转义、样品费自动核算</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/ERP管理系统/仓储管理系统/平台后台/自动化工具/共享存储服务 | 多店铺独立校验（按店铺缩写区分） | 本土/跨境店模板差异化生成 | 长数字格式防转义</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">石墨文档</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">泰国店铺信息、线下付款、独立仓等核心文件导出、线下付款记录颜色标记、图片自动移除</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页（mabangerp.com）</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">泰国TK店铺样品费数据导出、按上月时间范围精准筛选目标数据、导出任务状态检测</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">海仓OMS系统</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页（oms.seacang）</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">泰国TK店铺退货订单、取消订单已出库数据导出、按上月时间范围精准筛选目标数据、导出任务状态检测</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">TK泰国后台</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes（按店铺）</td>
+                                <td class="p-3 border border-grayBorder">泰国店铺订单/账单原始数据提取、本土/跨境店数据区分、核心字段标准化处理</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">跨系统逻辑执行、日期计算、数据清洗、Excel模板生成、公式写入、异常数据统计、长数字格式防转义、样品费自动核算</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS/Excel</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">标准化模板编辑、公式计算、多Sheet管理、回执单生成、文件颜色标记、长数字文本格式设置、公式刷新生效</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">共享存储服务</td>
+                                <td class="p-3 border border-grayBorder">网络共享</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">导出文件存储、标准化路径归档、多用户数据共享、全局变量路径配置（\\192.168.3.223\财务专用\影刀导入）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台/技术</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出/处理结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境清理与路径初始化</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令+os模块</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备，标准化存储路径/回执单文件夹创建，WPS/Chrome残留进程强制清理，毫秒级唯一文件夹生成，按月份归档导出文件）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">石墨文档登录与核心文件导出</td>
+                            <td class="p-3 border border-grayBorder">石墨文档+Python+pandas+openpyxl+xbot</td>
+                            <td class="p-3 border border-grayBorder">XLSX（泰国店铺信息、线下付款、独立仓等文件，自动移除图片、清理无效数据，线下付款文件特殊适配）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮/海仓OMS登录与数据导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+海仓OMS+Python+xbot+xbot_visual</td>
+                            <td class="p-3 border border-grayBorder">XLSX（马帮样品费、海仓退货订单、取消订单已出库数据，按上月时间范围精准筛选）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">基础数据文件整理</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+openpyxl+win32com</td>
+                            <td class="p-3 border border-grayBorder">XLSX（更新后基础数据，含统一成本、退货、取消订单已出库3大Sheet，成本价自动更新、退货数据同步）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">TK店铺模板批量处理</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+openpyxl+win32com+TK后台数据</td>
+                            <td class="p-3 border border-grayBorder">XLSX（各店铺标准化核对模板，区分本土/跨境店3PF，含订单、成本、妥投失败等核心Sheet，公式自动写入、数据智能匹配）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">回执单自动生成</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+openpyxl</td>
+                            <td class="p-3 border border-grayBorder">XLSX（回执单，含成本匹配失败SKU统计、新增费用名称统计、店铺订单空白SKU3大Sheet，按店铺维度统计）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS/et.exe残留进程（taskkill），关闭所有Chrome窗口，避免进程占用导致文件/页面操作失败</li>
+                    <li>按「石墨_海仓_马帮导出文件/年月」「毫秒级文件夹/模板/回执单」自动创建标准化存储路径，所有导出/处理文件按层级分类归档，解决文件存储混乱问题，支持补录时跳过重复导出</li>
+                    <li>石墨文档自动登录（含验证码处理），一键导出指定核心文件（泰国店铺信息、线下付款）+1类独立仓文件，自动校验文件存在性，未下载则重新尝试，多次失败抛出明确异常，本月已导出则直接跳过</li>
+                    <li>石墨文件自动化处理，线下付款文件自动移除图片、适配「简洁版下载」弹窗，独立仓文件单独导出重试，不影响核心文件处理，保证数据完整性</li>
+                    <li>马帮ERP自动登录，按上月时间范围精准筛选泰国样品费数据，一键导出并记录路径，样品费按「商品数量×成本价+打包费」自动核算，同一订单仅计算一次打包费</li>
+                    <li>海仓OMS自动登录，按上月时间范围精准筛选退货/取消订单已出库数据，一键导出并同步至基础数据文件对应Sheet，实现仓储数据自动化同步</li>
+                    <li>基础数据文件自动化更新，统一成本Sheet按财务成本价自动更新库存SKU/组合SKU成本，组合SKU按捆绑SKU数量×单价自动计算总成本，指定清仓SKU成本强制置0</li>
+                    <li>TK多店铺模板批量生成，按店铺缩写自动区分本土店/跨境店3PF，加载对应标准模板，一键创建标准化Sheet，自动写入匹配公式、复刻模板样式，确保样式统一</li>
+                    <li>成本与虚拟SKU智能匹配，通过VLOOKUP/INDEX+MATCH公式实现虚拟SKU到统一成本的自动匹配，匹配失败则移除公式分号重新尝试，仍失败则记录至回执单</li>
+                    <li>退货订单二次核对，妥投失败/顾客退货Sheet中未匹配的订单，与泰国独立仓运单号再次核对，匹配成功则自动更新，提升退货数据准确性</li>
+                    <li>长数字格式防转义，所有运单号/订单号等长数字单元格强制设置为文本格式，避免自动转科学计数法导致数据错误，支持手动添加文本标识处理</li>
+                    <li>线下付款/广告费文件自动化颜色标记，按上月时间范围+店铺缩写精准标记目标记录为黄色，方便财务人工快速定位核对，提升兜底效率</li>
+                    <li>汇总Sheet自动化计算，基于订单、账单、成本等Sheet数据，自动统计销售额、广告费、线下转账、产品成本、订单数、陆运、妥投失败/顾客退货成本、样品费等20+核心指标，无需人工计算</li>
+                    <li>三类异常数据自动化统计，成本匹配失败的虚拟SKU、新增的费用名称、店铺订单空白SKU按店铺维度统计至回执单，生成标准化异常数据报表，成本匹配失败店铺名称统一汇总</li>
+                    <li>关键操作重试机制，石墨文档加载、马帮/海仓数据筛选、文件导出、Excel写入等核心操作均支持可配置重试次数（retry_times），提升流程稳定性</li>
+                    <li>单个店铺处理失败容错，单个TK店铺模板生成失败则捕获异常并记录日志，跳过该店铺继续后续处理，确保流程连续性</li>
+                    <li>Excel公式与样式自动化复刻，模板文件自动写入各类匹配/统计公式，复刻字体、背景色、列宽等样式，核心金额列（统一成本、陆运、佣金）标红，确保与标准模板一致</li>
+                    <li>公式自动刷新生效，基础数据与模板文件更新后自动执行刷新操作，确保跨文件引用公式正常计算，避免数据错误</li>
+                    <li>本土/跨境店差异化处理，跨境店3PF模板单独命名（TikTok_3pf_店铺缩写），账单匹配公式、订单状态筛选规则差异化适配，确保数据处理准确性</li>
+                    <li>基础数据更新校验，通过「文件上传检查文件」标记是否需要更新成本价，避免重复更新导致成本价错误，更新前自动创建备份，防止源数据丢失</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境清理与路径初始化 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境清理与文件路径初始化</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS/et.exe进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>标准化存储路径（石墨_海仓_马帮导出文件/年月、毫秒级文件夹/模板/回执单）通过os.makedirs+exist_ok=True实现自动创建与容错，无需提前手动创建</li>
+                                <li>全局变量核心路径（BasicFile_Folder/Output_Folder/SETTING_TABLE/Advertisement_Folder）未配置则直接抛出异常，避免后续文件操作因路径无效而失败</li>
+                                <li>基于当前时间生成毫秒级唯一文件夹，避免同批次处理文件覆盖，确保文件存储唯一性</li>
+                                <li>配置文件（SETTING_TABLE）读取/写入失败时，捕获异常并记录详细堆栈信息，便于问题定位</li>
+                                <li>基础数据文件、标准模板文件（本土/跨境店）路径校验，文件缺失则抛出明确异常，终止流程并提示文件位置</li>
+                                <li>共享存储路径（\\192.168.3.223\财务专用\影刀导入）访问失败时，捕获IO异常并记录日志，明确提示权限/路径问题，便于运维排查</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：石墨文档登录与文件导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：石墨文档登录与核心文件导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>石墨文档打开时最多重试指定次数（retry_times），每次重试包含页面重载，超时则抛出「网络加载超时」明确异常，便于问题定位</li>
+                                <li>登录前检测是否已登录，已登录则直接跳过登录流程，避免重复操作，提升执行效率；登录失败（验证码/账号密码错误）则抛出明确异常，终止登录流程</li>
+                                <li>石墨各文件导出时最多重试指定次数，每次重试后关闭可能残留的「另存为」弹窗，避免弹窗遮挡导致导出失败</li>
+                                <li>导出后强制校验文件存在性，文件未生成则标记导出失败并继续重试，多次失败则抛出明确异常并终止对应文件处理</li>
+                                <li>配置文件（SETTING_TABLE）中已记录本月文件路径则直接跳过导出，避免重复下载，提升执行效率；路径记录错误则清空并重新导出</li>
+                                <li>石墨文件图片移除时捕获异常，记录详细日志并继续处理，避免图片移除失败导致文件处理中断</li>
+                                <li>线下付款文件导出时若出现「简洁版下载」弹窗，自动点击适配处理，超时则抛出异常，确保文件正常导出</li>
+                                <li>文件导出后自动记录路径至配置文件对应单元格，按文件类型分类，路径写入失败则捕获异常并记录日志</li>
+                                <li>独立仓文件导出失败时，单独重试指定次数，不影响其他石墨文件的导出与处理，保证核心数据优先获取</li>
+                                <li>线下付款文件颜色标记时，若文件已关闭则重新打开，标记完成后及时关闭，释放文件占用；标记失败则记录日志，不修改原文件</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：马帮/海仓OMS登录与数据导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：马帮/海仓OMS登录与数据导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>马帮/海仓OMS登录支持可配置重试次数，账号密码验证失败则抛出明确异常，终止流程并提示检查账号密码</li>
+                                <li>马帮数据筛选时持续检测加载状态（最长900秒），超过指定时长则抛出「加载失败」，避免流程卡死在加载状态</li>
+                                <li>海仓数据筛选时持续检测加载状态（最长600秒），超过指定时长则抛出「海仓_搜索后异常」，避免流程卡死在加载状态</li>
+                                <li>按上月时间范围输入日期后，检测搜索按钮是否显示，超时则抛出「数据加载失败」，确保日期筛选生效</li>
+                                <li>数据导出后持续检测导出任务完成状态（海仓最长1200秒），未完成则重新触发搜索，确保文件正常生成</li>
+                                <li>导出文件下载后强制校验存在性，文件未生成则标记导出失败并重试，多次失败则抛出异常并记录日志</li>
+                                <li>配置文件（SETTING_TABLE）中已记录本月马帮/海仓文件路径则直接跳过导出，避免重复下载；路径无效则清空并重新导出</li>
+                                <li>马帮/海仓页面元素点击时，使用CommonUtil封装的带重试点击方法，元素未显示则重试指定次数，超时则抛出异常，确保操作有效</li>
+                                <li>马帮样品费数据按「固定分类-样品订单+泰国+上月时间」筛选，筛选规则错误则抛出异常，确保数据时间/地域维度准确性</li>
+                                <li>海仓不同类型数据（退货/取消）按指定时间范围筛选，筛选规则错误则抛出异常，确保数据时间维度准确性</li>
+                                <li>导出任务状态检测时，若页面元素消失则重新定位，避免元素丢失导致流程中断</li>
+                                <li>马帮多页数据导出时，按总页数循环导出，单页导出失败则重试，确保数据完整性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：基础数据文件整理 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：基础数据文件整理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>基础数据文件打开/写入时，若文件被占用则捕获异常，确保流程不终止并记录详细日志，提示文件被其他程序占用</li>
+                                <li>统一成本Sheet更新时，若库存SKU/组合SKU数据缺失则保留原始数据，避免成本价错误覆盖；财务成本价文件缺失则抛出异常，终止成本更新流程</li>
+                                <li>组合SKU成本计算时，若捆绑SKU未找到则保留原始组合成本，不进行更新，确保成本数据准确性；捆绑SKU数量为非数字则捕获异常，按0处理并记录日志</li>
+                                <li>指定清仓SKU（QM_TH30500103-01/02）成本强制置0，若SKU未匹配则跳过，不影响其他SKU成本更新</li>
+                                <li>退货/取消订单已出库Sheet数据复制时，使用win32com操作WPS并设置DisplayAlerts=False，屏蔽弹窗提示，避免人工干预；复制失败则捕获COM异常并记录日志</li>
+                                <li>数据复制完成后强制终止WPS相关进程（et.exe），释放文件占用，避免后续文件操作失败；进程终止失败则忽略，不影响流程继续</li>
+                                <li>基础数据文件更新后执行刷新操作，确保跨文件引用公式生效，刷新失败则捕获异常并提示手动刷新，避免后续模板匹配时出现数据错误</li>
+                                <li>所有长数字列（运单号/订单号）强制设置为文本格式，捕获格式转换异常，避免数据失真；格式转换失败则手动添加文本标识（="xxx"）处理</li>
+                                <li>基础数据文件复制至模板文件夹时，若复制失败（权限/路径问题）则抛出异常，终止模板生成流程，确保模板数据来源有效</li>
+                                <li>基础数据更新前自动创建备份，备份失败则捕获异常并记录日志，继续执行更新流程，确保源数据可恢复</li>
+                                <li>通过「文件上传检查文件」判断是否更新成本，标记非「是/否」则按「否」处理，使用现有成本数据，避免标记错误导致重复更新</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：TK店铺模板批量处理 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：TK店铺模板批量处理</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>模板处理前校验订单/账单文件存在性，任意文件缺失则记录错误日志并跳过该店铺，不终止后续处理；文件路径错误则按缺失处理</li>
+                                <li>按店铺缩写判断本土/跨境店，跨境店3PF未匹配到对应模板则抛出异常并跳过该店铺，记录模板缺失日志</li>
+                                <li>模板Sheet创建/删除时，若Sheet不存在则直接跳过删除操作，避免抛出不存在异常；Sheet创建失败则捕获异常并记录日志</li>
+                                <li>Excel公式写入时，捕获列名缺失、单元格引用错误等异常，记录日志并填充默认值（0.00），确保模板完整性；公式写入失败则跳过该单元格，不影响其他公式</li>
+                                <li>成本与虚拟SKU匹配失败时，自动调整匹配公式（移除分号）重新尝试，仍失败则记录至回执单，不中断模板生成；公式调整失败则按匹配失败处理</li>
+                                <li>退货订单与独立仓数据核对时，若独立仓文件缺失则跳过二次核对，保留原始匹配结果；独立仓数据格式错误则按未匹配处理，记录日志</li>
+                                <li>线下付款/广告费文件颜色标记时，若文件已关闭则重新打开，标记完成后及时关闭，释放文件占用；标记失败则记录日志，不影响模板数据</li>
+                                <li>单个Sheet处理失败不影响其他Sheet，某一Sheet生成错误则记录日志并继续处理下一个Sheet，确保数据最大化获取；核心Sheet（订单/成本）失败则跳过该店铺</li>
+                                <li>模板文件保存前检测路径有效性，路径无效则自动创建并重新保存，避免保存失败；保存失败（权限/磁盘满）则抛出异常并跳过该店铺</li>
+                                <li>汇总Sheet指标计算时，若源数据缺失则填充0.00，确保汇总表无空值，方便财务查看；指标计算错误则记录日志，填充默认值</li>
+                                <li>模板生成完成后自动刷新公式，确保跨Sheet/跨文件引用公式正常计算，刷新失败则捕获异常并提示手动刷新，避免数据错误</li>
+                                <li>长数字单元格格式设置时，若设置失败则手动写入文本格式公式，确保不转科学计数法；格式设置异常则记录日志</li>
+                                <li>样品费自动核算时，若商品数量/成本价为非数字则按0处理，记录核算异常日志；打包费未配置则抛出异常，终止样品费计算</li>
+                                <li>回执单数据统计时，捕获DataFrame拼接异常，确保异常数据不丢失；统计失败则记录日志，不影响模板生成</li>
+                                <li>本土/跨境店账单匹配公式差异化写入，公式适配失败则捕获异常，使用通用公式替代并记录日志</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：石墨文档文件导出与处理规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：石墨文档文件导出与处理规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定导出2类核心文件：泰国店铺信息、2025泰国线下付款（BBL-4137），对应固定石墨文档URL，为核心数据来源，TK店无测评相关文件</li>
+                                <li>独立导出1类辅助文件：泰国独立仓文件，单独存储，用于妥投失败/顾客退货订单二次核对，导出失败不影响核心文件处理</li>
+                                <li>导出格式固定为XLSX，文件命名与石墨文档原名称一致，确保文件名唯一性与识别性，禁止修改导出文件名</li>
+                                <li>导出路径固定为「{Output_Folder}/石墨_海仓_马帮导出文件/{月份}/石墨」，所有石墨文件统一归档，方便后续读取与处理，路径自动创建无需手动干预</li>
+                                <li>导出记录规则：导出完成后将文件路径写入配置文件（SETTING_TABLE）B4-B8列，A列记录文件类型，本月再次执行则直接读取路径跳过导出，路径无效则清空重写</li>
+                                <li>数据处理规则：线下付款文件自动移除所有图片，避免图片导致Excel文件打开异常、数据读取错误；独立仓文件保留原始格式，仅做路径记录</li>
+                                <li>颜色标记规则：按「上月时间范围+店铺缩写」筛选线下付款文件目标记录，将店铺缩写列标黄，标记完成后保存原文件，不改变文件路径与名称；标记失败则记录日志，不修改原文件</li>
+                                <li>线下付款文件特殊处理：导出时若出现「简洁版下载」弹窗，自动点击下载，文件下载后立即执行图片移除操作，确保数据正常读取</li>
+                                <li>数据校验规则：导出后校验核心列（登记时间、店铺缩写、订单号/金额）完整性，核心列缺失则抛出异常，提示文件数据残缺</li>
+                                <li>独立仓文件特殊规则：导出路径与核心文件一致，单独记录路径，数据处理阶段仅用于退货订单二次核对，不参与基础数据更新</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：马帮/海仓OMS数据导出与处理规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：马帮/海仓OMS数据导出与处理规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>马帮导出1类文件：样品费数据，海仓导出2类文件（退货订单、取消订单已出库），为TK退货/样品费数据核心来源，各类文件独立导出、单独存储</li>
+                                <li>导出时间范围：均按上月时间范围精准筛选，马帮样品费按「上月1日-上月最后一日 00:00:00~23:59:59」、海仓退货/取消订单按「上月1日-当月1日 00:00:00~23:59:59」，日期格式为「YYYY-MM-DD HH:MM:SS」，确保时间维度准确</li>
+                                <li>导出格式为XLSX，文件命名规则为「系统名_数据类型_导出_{时间戳}.xlsx」，包含系统名、数据类型与毫秒时间戳，确保唯一性，避免文件覆盖</li>
+                                <li>导出路径固定为「{Output_Folder}/石墨_海仓_马帮导出文件/{月份}/马帮/海仓」，按系统分类归档，路径自动创建无需手动干预</li>
+                                <li>导出记录规则：导出完成后将文件路径写入配置文件（SETTING_TABLE）对应列，A列记录文件类型，本月再次执行则直接读取路径跳过导出，路径无效则清空重写</li>
+                                <li>数据处理规则：使用win32com将海仓数据复制至基础数据文件对应Sheet，清空原有数据，仅保留值（不复制格式），列宽与原Sheet一致，确保数据格式统一；马帮样品费数据仅做路径记录，模板汇总阶段直接读取</li>
+                                <li>数据格式规则：所有单元格强制设置为文本格式，避免长数字（运单号/订单号）自动转科学计数法，格式设置失败则手动处理</li>
+                                <li>进程规则：海仓数据复制完成后强制终止WPS相关进程（et.exe），释放文件占用，确保后续文件可正常读取与编辑</li>
+                                <li>马帮样品费筛选规则：固定按「订单管理-高级搜索-固定分类-样品订单+国家-泰国+付款时间-上月范围」筛选，确保数据为泰国TK店铺样品费</li>
+                                <li>海仓数据筛选规则：退货订单按「订单管理-退货+下单时间-上月范围」、取消订单已出库按「订单管理-已出库-取消+下单时间-上月范围」筛选，确保数据类型准确</li>
+                                <li>数据校验规则：复制/导出完成后校验核心列（运单号、订单号、时间、金额）完整性，核心列缺失则抛出异常，提示数据残缺</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：TK订单/账单文件传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：TK订单/账单文件传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>文件来源：TK泰国后台导出的订单/账单原始数据，格式为XLSX，为模板处理核心源数据，禁止修改源文件名称与格式</li>
+                                <li>存储路径：固定存储在全局变量「Advertisement_Folder」指定路径，按店铺缩写分类存储，文件名称需包含店铺缩写与「订单/账单」关键字，确保按店铺精准筛选</li>
+                                <li>文件格式：订单/账单文件均为XLSX格式，账单文件需包含「Order details」Sheet，为核心数据Sheet，列名保留TK后台原始格式</li>
+                                <li>筛选规则：按店铺缩写精准筛选对应店铺的订单/账单文件，二者缺一则跳过该店铺处理，记录缺失文件日志</li>
+                                <li>数据读取规则：使用pandas/openpyxl读取文件，订单文件从第3行读取数据、账单文件从第1行读取数据，空值填充为空字符串，避免数据读取错误</li>
+                                <li>数据筛选规则：订单文件按状态筛选（保留完成、妥投失败、顾客退货，排除其他取消状态），本土店与跨境店3PF状态名称差异化适配（如妥投失败：Package delivery failed/包裹送达失败）；账单文件按「Type」筛选有效交易数据，排除无效记录</li>
+                                <li>格式转换规则：所有金额列转换为数值类型，日期列格式化为统一格式（YYYY-MM-DD），长数字列（运单号/订单号）强制设置为文本格式，确保公式计算正常</li>
+                                <li>去重规则：订单/账单数据按订单号去重，避免重复数据导致统计结果错误，去重后保留第一条数据</li>
+                                <li>本土/跨境店区分规则：跨境店3PF订单/账单文件与本土店统一存储，按店铺缩写在「泰国店铺信息」文件中标记区分，模板处理阶段自动识别</li>
+                                <li>列名规则：保留TK后台原始列名，模板处理阶段按列名精准定位核心字段（如订单号、Seller SKU、金额、取消原因），列名变更则需同步调整代码中列名映射</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：基础数据文件更新规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：基础数据文件更新规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>源文件路径：固定存储在共享路径「BasicFile_Folder」（\\192.168.3.223\财务专用\影刀导入），文件名为「基础数据.xlsx」，包含统一成本、退货、取消订单已出库3大Sheet，为成本、退货数据核心模板，禁止修改源文件名称与Sheet结构</li>
+                                <li>更新触发规则：仅在「文件上传检查文件」（FILE_UPLOAD_CHECK）A2单元格标记为「否」时更新统一成本Sheet，避免重复更新导致成本价错误；标记为「是」则直接使用现有数据</li>
+                                <li>更新后路径：复制至模板文件夹「{Template_Save_Folder}」，文件名称不变，作为模板匹配的基础数据来源，支持跨文件公式引用，复制失败则终止模板生成</li>
+                                <li>Sheet更新规则：统一成本Sheet按财务成本价文件更新库存/组合SKU成本、陆运费、退货Sheet同步海仓退货订单数据、取消订单已出库Sheet按海仓数据全量覆盖，更新顺序为「统一成本→退货→取消订单已出库」</li>
+                                <li>组合SKU更新规则：按捆绑SKU数量与单价自动计算组合成本，捆绑SKU缺失则保留原始组合成本，确保成本准确性；指定清仓SKU（QM_TH30500103-01/02）成本强制置0，不参与自动计算</li>
+                                <li>刷新规则：更新完成后执行Excel刷新操作，确保所有跨文件引用公式生效，再复制至模板文件夹；刷新失败则提示手动刷新</li>
+                                <li>权限规则：更新后的文件保留读写权限，支持多用户访问，不设置加密/保护，方便模板读取数据；共享路径无写入权限则抛出异常</li>
+                                <li>进程规则：更新完成后强制终止WPS相关进程，释放文件占用，避免后续模板处理文件被锁；进程终止失败则忽略，记录日志</li>
+                                <li>备份规则：基础数据文件更新前自动创建备份，存储在原路径下，命名为「基础数据_备份_时间戳.xlsx」，避免更新失败导致源数据丢失</li>
+                                <li>成本价更新规则：库存SKU直接按财务成本价文件更新，组合SKU按「捆绑SKU数量×对应成本价」累加计算，计算失败则保留原始成本</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则5：模板与回执单传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则5：模板文件与回执单传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>模板源文件：固定使用全局变量「Template_filepath」（本土店）/「Template_filepath_3pf」（跨境店）指定的标准模板，包含订单、成本、妥投失败、顾客退货、账单明细、汇总等核心Sheet与基础样式、公式，禁止修改源模板结构与公式</li>
+                                <li>模板存储路径：「{Output_Folder}/TikTok处理后模板/{月份}/TIKTOK/{运营名称}」，按「月份-平台-运营」三级分类，方便按运营/店铺筛选，路径自动创建无需手动干预</li>
+                                <li>模板命名规则：本土店「TikTok_{店铺缩写}.xlsx」、跨境店3PF「TikTok_3pf_{店铺缩写}.xlsx」，包含平台、店铺类型与店铺缩写，确保按店铺快速识别，禁止修改生成后的模板文件名</li>
+                                <li>Sheet规范：固定包含订单、成本、妥投失败、顾客退货、账单明细、汇总等核心Sheet，Sheet顺序不可调整，汇总Sheet自动统计20+核心指标，Sheet创建失败则跳过该店铺</li>
+                                <li>公式规范：所有匹配公式（VLOOKUP/INDEX+MATCH）关联基础数据文件或模板内其他Sheet，路径为绝对路径，确保公式跨文件生效；本土/跨境店账单匹配公式差异化适配，公式写入失败则填充默认值（0.00）</li>
+                                <li>样式规范：复刻标准模板的字体（宋体12号）、背景色、列宽、字体颜色，核心金额列（统一成本、陆运、样品费）标红，确保所有店铺模板样式统一，样式复刻失败则记录日志</li>
+                                <li>回执单存储路径：「{Output_Folder}/回执单」，所有店铺的异常数据统一统计至一个回执单，方便财务集中查看，路径自动创建</li>
+                                <li>回执单命名规则：「TIKTOK明细回执单_{时间戳}.xlsx」，包含平台与毫秒时间戳，确保唯一性，避免文件覆盖</li>
+                                <li>回执单Sheet规范：固定包含「成本匹配失败SKU统计」「新增费用名称统计」「店铺订单空白SKU」3大Sheet，按「平台-店铺名称-异常内容」分类统计，Sheet结构不可调整</li>
+                                <li>异常数据规则：三类异常数据按店铺维度统计，流程结束后将成本匹配失败的店铺名称写入全局变量「cost_mismatch_sku_text」，以分号分隔，方便财务快速定位问题店铺</li>
+                                <li>文件权限规则：生成的模板与回执单保留读写权限，支持财务后续编辑、核对，不设置加密/保护，共享路径无写入权限则抛出异常</li>
+                                <li>公式刷新规则：模板生成完成后自动执行刷新操作，确保所有跨Sheet/跨文件公式正常计算，避免数据错误；刷新失败则提示手动刷新</li>
+                                <li>基础数据同步规则：每个店铺模板文件夹下同步复制一份基础数据文件，确保模板公式引用本地数据，避免跨路径引用失败</li>
+                                <li>样品费计算规范：按「商品数量×统一成本价+打包费」自动核算，同一订单仅计算一次打包费，打包费从模板汇总Sheet读取，核算结果写入汇总Sheet样品费列</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理与路径操作，不支持Linux/Mac系统）</li>
+                        <li>浏览器：Google Chrome（任意版本），支持石墨文档、马帮ERP、海仓OMS、TK泰国后台登录访问、多页面加载、文件下载，需开启最大化窗口模式</li>
+                        <li>ERP管理系统：马帮ERP（mabangerp.com）最新版，支持泰国TK店铺样品费数据筛选、导出、任务状态检测，需保证系统页面无改版</li>
+                        <li>仓储管理系统：海仓OMS（oms.seacang）最新版，支持泰国TK店铺退货/取消订单已出库数据筛选、导出、任务状态检测，需保证系统页面无改版</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持XLSX格式、无锁文件读写、公式计算、VBA操作、文本格式设置，推荐WPS Office）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持数据处理、自动化操作、Excel读写、系统进程管理，建议3.9~3.11版本）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、窗口管理、元素定位、文件下载核心能力，需配套影刀客户端）</li>
+                        <li>存储服务：网络共享存储（\\192.168.3.223\财务专用\影刀导入）/本地磁盘（支持多级文件夹创建、XLSX文件写入、多用户访问，需保证磁盘空间充足）</li>
+                        <li>网络环境：稳定的网络连接，可正常访问石墨文档、马帮ERP、海仓OMS、TK泰国后台，无代理限制、无网络超时，建议专线网络</li>
+                        <li>COM组件：需启用Windows COM组件支持，确保win32com可正常调用WPS/Excel，无组件禁用限制</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>自动化操作：xbot、xbot_visual（影刀核心库，网页操作、图像识别、窗口管理、文件下载、进程管理，需与影刀客户端版本匹配）</li>
+                        <li>数据处理：pandas（数据读取、清洗、筛选、合并，支持XLSX格式，建议1.5+版本）、numpy（数值运算、空值填充，建议1.24+版本）</li>
+                        <li>Excel操作：openpyxl（XLSX文件读写、样式设置、公式写入、图片移除，支持Excel 2007+格式，建议3.0+版本）、win32com（WPS/Excel底层操作，数据复制、弹窗屏蔽、公式刷新）</li>
+                        <li>文件操作：os（路径处理、文件夹创建、进程调用，Python内置）、shutil（文件复制、重命名、文件夹删除，Python内置）</li>
+                        <li>正则处理：re（内置，少量数据匹配、格式处理，如店铺缩写标准化、时间格式提取）</li>
+                        <li>时间处理：datetime（内置，日期计算、格式转换、时间戳生成）、time（内置，延时操作、毫秒数获取）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录，影刀内置）、traceback（内置，异常堆栈信息捕获，便于问题定位）</li>
+                        <li>窗口操作：xbot.win32（内置，窗口激活、键盘指令、鼠标操作、进程终止）</li>
+                        <li>类型处理：pythoncom（COM组件初始化，支持win32com操作WPS/Excel，Python内置）</li>
+                        <li>扩展工具：xbot_extensions.activity_jfbym/human_click（验证码处理、人工模拟点击，影刀扩展库）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>石墨文档：拥有泰国店铺信息、线下付款、独立仓等文件的「查看/导出/下载」权限，可正常访问表格内容，无下载限制、无访问地域限制</li>
+                        <li>马帮ERP：拥有「登录/订单管理/高级搜索/筛选数据/导出数据」权限，可按时间范围筛选泰国TK店铺样品费数据，无操作次数限制、无数据查看限制</li>
+                        <li>海仓OMS系统：拥有「登录/订单管理/库存管理/筛选数据/导出数据」权限，可按时间范围筛选泰国TK相关数据，无操作次数限制、无数据查看限制</li>
+                        <li>TK泰国后台：按店铺拥有「登录/访问订单/账单模块/导出数据」权限，可导出标准化订单/账单原始数据，无导出限制、无数据权限限制</li>
+                        <li>存储服务：共享路径（\\192.168.3.223\财务专用\影刀导入）的「读/写/新建/删除」权限，可创建多级子文件夹并写入/编辑/删除XLSX文件，无磁盘配额限制</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS/Chrome/et.exe残留进程）、允许os.system调用系统命令、允许COM组件初始化（pythoncom）</li>
+                        <li>浏览器权限：允许Chrome最大化启动、允许同时打开多个窗口、允许非模拟点击/输入，支持影刀RPA插件化运行，无浏览器安全限制</li>
+                        <li>文件权限：允许读取/写入/编辑/保存XLSX格式文件，无文件加密/保护限制，生成的文件可被多用户访问/编辑，无文件锁定限制</li>
+                        <li>WPS/Excel权限：允许以无界面模式运行（Visible=False）、允许屏蔽弹窗提示（DisplayAlerts=False）、允许修改单元格样式/公式/格式、允许移除工作表图片，无宏禁用限制</li>
+                        <li>影刀权限：拥有影刀RPA「运行流程/调用模块/访问全局变量/操作文件」权限，可正常调用xbot/xbot_visual库，无功能限制</li>
+                        <li>网络权限：允许访问外网（石墨文档、马帮ERP、海仓OMS、TK泰国后台），无防火墙/网关限制，允许文件下载/上传，无网络带宽限制</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：retry_times（重试次数）、Output_Folder（输出根路径）、shop_name_list（目标店铺列表）、BasicFile_Folder（基础数据根路径）、SETTING_TABLE（配置文件路径）、Advertisement_Folder（TK数据存储路径）、Template_filepath（本土店模板路径）、Template_filepath_3pf（跨境店模板路径）、cost_mismatch_sku_text（成本匹配失败店铺）、finance_costPrice_filepath（财务成本价文件路径）</li>
+                        <li>自定义工具模块：tools.py（提供get_date_range/iso_to_excel_date/str_to_date_safe等方法，时间处理、日期转换、格式转换、Excel列名与数字转换）</li>
+                        <li>自定义业务类：Shimo（石墨文档操作封装，登录、核心文件导出、图片移除）、Maban（马帮ERP操作封装，登录、样品费数据导出）、Haicang（海仓OMS操作封装，登录、两类数据导出、数据筛选）、Dataclean（数据清洗与模板处理封装，基础数据更新、模板生成、回执单统计、核心Sheet处理、汇总指标计算）</li>
+                        <li>通用工具类：CommonUtil（静态类，封装带重试的点击方法，提供窗口激活/元素容错能力，禁止实例化，提升页面操作成功率，核心方法：click）</li>
+                        <li>配置文件：SETTING_TABLE（XLSX格式），用于记录本月已导出文件路径，避免重复下载，核心列：A3（处理月份）、A4-B10（文件类型与路径），禁止修改核心列位置</li>
+                        <li>检查文件：FILE_UPLOAD_CHECK（XLSX格式），用于标记基础数据是否需要更新，核心单元格：A2（是否更新标记），仅支持「是/否」两个值</li>
+                        <li>基础数据文件：基础数据.xlsx，包含统一成本、退货、取消订单已出库3大Sheet，为模板匹配的核心数据来源，支持成本价自动更新，禁止修改Sheet名称与核心列结构</li>
+                        <li>标准模板文件：TK本土店/跨境店标准模板.xlsx，包含核心Sheet与基础样式、公式，为店铺模板生成的源模板，禁止修改Sheet顺序与核心公式</li>
+                        <li>财务成本价文件：X月份泰国成本计算.xlsx，存储在BasicFile_Folder路径，为统一成本Sheet更新的核心来源，文件名称需包含「月份+泰国成本计算」关键字</li>
+                        <li>独立仓文件：泰国独立仓.xlsx，由石墨文档导出，存储在石墨文件路径，用于退货订单二次核对，核心列：原运单号、收件日期，禁止修改核心列名</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有点击事件、图标旋转、全部联动问题 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
