@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发提成基础数据优化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                开发提成基础数据优化-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                产品开发提成基础数据自动化处理 | 马帮ERP开发SKU数据分页提取 · 海仓系统最后入库时间补充 · 指定关键词SKU过滤 · 到期时间/剩余天数/提醒自动计算 · 标准化产品开发明细表自动生成
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>财务部门需完成<b>产品开发提成基础数据</b>自动化处理，核心是从<b>马帮ERP</b>按开发员维度分页提取库存SKU全量数据（适配马帮500条/页分页限制），通过<b>海仓系统</b>按SKU精准补充最后入库时间，过滤含<b>QM/PH/ID/MY</b>等指定关键词的SKU数据，整合多源数据后完成<b>到期时间自动计算、剩余天数实时统计、到期提醒智能判断</b>，自动生成标准化产品开发明细表（含19大核心字段，内置Excel计算公式），实现开发SKU数据一键提取、跨系统数据自动补充、时间维度指标智能核算、明细表样式与公式标准化，解决人工提取数据效率低、跨系统数据核对繁琐、到期信息手动计算易出错、明细表格式不统一等痛点。</p>
+                <p class="mt-2">人工完成开发提成基础数据整理工作，存在<b>马帮数据500条分页手动翻页、跨系统数据手动核对、指定SKU手动筛选、到期时间/剩余天数手动计算、明细表样式公式重复配置</b>等痛点，通过自动化流程实现马帮数据分页自动提取、海仓数据自动补充、关键词SKU智能过滤、时间指标公式化计算、标准化明细表一键生成，提升开发提成基础数据处理的准确性与效率，实现开发提成核算的标准化数据支撑。</p>
+                <p class="mt-2"><b>核心特殊点</b>：适配马帮ERP500条/页分页限制，自动计算总页数并批量提取；按<b>开发员蒋新悦</b>固定维度筛选SKU数据，确保数据归属准确；过滤含QM/PH/ID/MY（大小写兼容）的目标SKU，精准匹配开发提成核算范围；内置EDATE/TODAY/IF等Excel公式，实现到期时间、剩余天数、到期提醒自动化计算，支持实时更新；明细表样式标准化配置，表头、列宽、字体、填充色统一固化。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">产品开发入库信息_明细生成</td>
+                            <td class="p-3 border border-grayBorder">财务部</td>
+                            <td class="p-3 border border-grayBorder">定期执行（手动触发，按需提取最新数据）</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP开发SKU数据分页提取、海仓系统最后入库时间补充、指定关键词SKU过滤、到期时间/剩余天数/提醒自动计算、标准化产品开发明细表生成、公式与样式统一固化</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/ERP管理系统/仓储管理系统/自动化工具/办公软件/共享存储服务 | 马帮500条分页适配 | 指定关键词SKU过滤 | 时间指标公式化自动计算</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页（mabangerp.com）</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">开发员维度库存SKU数据提取、500条/页分页适配、数据条数统计、总页数自动计算、SKU基础信息（名称/库存/供应商等）获取</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">海仓系统</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">自动登录、按SKU精准查询、最后入库时间补充、跨系统数据联动</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">跨系统逻辑执行、数据清洗、指定关键词SKU过滤、Excel公式写入、样式标准化、数据整合</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS/Excel</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">标准化明细表编辑、公式计算、样式设置、结果文件保存、实时数据更新</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">共享存储服务</td>
+                                <td class="p-3 border border-grayBorder">网络共享/本地磁盘</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">结果文件存储、标准化路径归档、毫秒级唯一文件夹生成、文件快速定位</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台/技术</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出/处理结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境清理与路径初始化</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令+os模块</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备，WPS/Chrome残留进程强制清理，毫秒级唯一文件夹生成，标准化存储路径创建，避免文件覆盖与进程占用）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP开发SKU数据提取</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python+xbot+xbot_visual+math</td>
+                            <td class="p-3 border border-grayBorder">SKU基础数据字典（开发员蒋新悦全量SKU，适配500条/页分页，自动计算总页数，含状态/库存/供应商等核心信息）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">海仓系统最后入库时间补充</td>
+                            <td class="p-3 border border-grayBorder">海仓系统+Python+xbot+package</td>
+                            <td class="p-3 border border-grayBorder">补全后数据字典（在马帮SKU数据基础上，补充最后入库时间字段，实现跨系统数据整合）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">多源数据整合与清洗</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+re+datetime</td>
+                            <td class="p-3 border border-grayBorder">过滤后数据字典（按QM/PH/ID/MY关键词过滤SKU，大小写兼容，去除无效字段，核心字段格式标准化）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">标准化开发明细表生成</td>
+                            <td class="p-3 border border-grayBorder">Python+openpyxl+Workbook+styles</td>
+                            <td class="p-3 border border-grayBorder">XLSX（标准化产品开发明细表，含19大核心字段，内置到期时间/剩余天数/提醒计算公式，样式统一固化，支持实时更新）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS.exe残留进程（taskkill /F /IM），关闭所有Chrome窗口，避免进程占用导致文件/页面操作失败</li>
+                    <li>按「处理完成/毫秒级时间戳文件夹」自动创建标准化存储路径，所有结果文件按唯一文件夹归档，避免同批次处理文件覆盖，支持结果文件快速定位</li>
+                    <li>马帮ERP自动登出/登录，确保登录环境干净，避免登录状态异常导致的操作失败；登录信息从全局变量glv读取，支持配置化管理</li>
+                    <li>马帮数据加载状态智能检测，持续300秒检测「加载中」图像，超过时长则抛出明确异常，避免流程卡死在加载状态</li>
+                    <li>适配马帮ERP500条/页分页限制，自动提取数据总条数并通过math.ceil计算总页数，支持任意数据量的批量提取，确保数据完整性</li>
+                    <li>马帮SKU数据固定维度筛选，按「开发员=蒋新悦」精准过滤，确保数据归属准确，无需人工手动筛选</li>
+                    <li>海仓系统自动登录，登录信息从全局变量glv读取，登录后按SKU批量补充最后入库时间，实现跨系统数据自动联动</li>
+                    <li>指定关键词SKU智能过滤，支持QM/PH/ID/MY关键词（大小写兼容），通过正则表达式实现精准匹配，自动过滤非目标SKU</li>
+                    <li>核心时间指标公式化自动计算，内置EDATE/TODAY/IF等Excel公式，实现1-6月/7-12月双维度到期时间、剩余天数、到期提醒自动核算</li>
+                    <li>到期提醒智能判断，按「已过期（剩余天数<0）、即将到期（≤30天）、未到期（>30天）」三档自动分类，无需人工判断</li>
+                    <li>标准化明细表样式统一固化，表头蓝色背景白色粗体、居中对齐，列宽按字段长度固定配置，核心字段格式标准化（日期为yyyy-mm-dd）</li>
+                    <li>19大核心字段固定表头，包含状态、创建人员、开发员、库存SKU、最后入库时间、到期提醒等，覆盖开发提成核算全维度数据需求</li>
+                    <li>Excel公式自动写入并格式化，到期时间列自动设置日期格式，剩余天数列自动计算，提醒列自动生成文字提示，支持手动修改基础数据后实时重算</li>
+                    <li>结果文件标准化命名，按「产品开发明细表_毫秒时间戳.xlsx」命名，包含唯一时间标识，确保文件识别性与唯一性</li>
+                    <li>通用元素点击工具封装，CommonUtil静态类实现带重试的元素点击，支持窗口激活、元素显隐性检测、可配置重试次数，提升页面操作稳定性</li>
+                    <li>自定义异常类封装，实现BaseError基础异常与FileDownLoadError文件下载异常，支持日志联动，便于问题精准定位</li>
+                    <li>全局变量统一管理，核心参数（输出路径、登录信息、重试次数）从glv读取，支持配置化修改，无需改动核心代码</li>
+                    <li>资源自动释放，Excel工作簿使用后自动关闭，垃圾回收（gc）自动触发，避免文件句柄与内存占用</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境清理与路径初始化 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境清理与文件路径初始化</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS.exe进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>标准化存储路径（处理完成/毫秒级时间戳文件夹）通过os.makedirs+exist_ok=True实现自动创建与容错，无需提前手动创建</li>
+                                <li>全局变量核心路径（Output_folder）未配置则直接抛出异常，避免后续文件操作因路径无效而失败</li>
+                                <li>基于当前时间生成毫秒级唯一文件夹名称，避免同批次处理文件覆盖，确保文件存储唯一性</li>
+                                <li>路径拼接使用os.path.join自动处理系统路径分隔符，兼容Windows系统，避免因路径分隔符错误导致文件读写失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：马帮ERP开发SKU数据提取 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：马帮ERP开发SKU数据提取</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>马帮数据加载状态检测最长300秒，持续检测「加载中」图像是否存在，超过指定时长则抛出「加载失败」异常，避免流程卡死在加载状态</li>
+                                <li>获取马帮数据总页数时支持可配置重试次数（glv['retry_times']），单次失败记录日志并重新执行，超过次数则抛出明确异常</li>
+                                <li>提取数据总条数后转换为整型时捕获类型转换异常，避免非数字格式导致的分页计算错误</li>
+                                <li>计算总页数后校验是否大于0，若小于1则抛出「页面最大数获取异常」，避免无数据时后续空处理</li>
+                                <li>页面元素点击（筛选条件、按钮等）使用CommonUtil封装的带重试点击方法，元素未显示则重试指定次数，超时则抛出异常，确保操作有效</li>
+                                <li>马帮页面创建时设置300秒加载超时，避免网络问题导致的页面打开失败，同时开启浏览器最大化模式确保元素可见</li>
+                                <li>登出/登录马帮时捕获登录异常，确保登录环境干净，避免登录状态异常导致的后续操作失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：海仓系统最后入库时间补充 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：海仓系统最后入库时间补充</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>海仓系统登录使用封装的hc_login方法，登录信息从全局变量glv读取，登录失败则抛出异常并终止流程，确保数据补充基础有效</li>
+                                <li>按SKU查询海仓数据时，使用带重试的元素操作，避免网络延迟或元素加载慢导致的查询失败</li>
+                                <li>补充最后入库时间时，若海仓系统无对应SKU记录，捕获异常并标记字段为空，不中断整体数据处理流程</li>
+                                <li>数据补充过程中实时打印数据日志，便于跟踪处理进度与定位异常SKU</li>
+                                <li>跨系统数据联动时，保持SKU字段格式统一，避免因格式差异导致的匹配失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：多源数据整合与清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：多源数据整合与清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>从马帮/海仓整合数据中提取SKU列表时，若SKU列表长度小于1则抛出异常，终止后续处理，避免无数据源导致的空处理</li>
+                                <li>指定关键词SKU过滤时，使用case=True实现大小写兼容，na=False过滤空值SKU，避免过滤逻辑异常导致的无效数据</li>
+                                <li>数据字典遍历与数据提取时，捕获键值对不存在异常，记录日志并跳过该条数据，不中断整体流程</li>
+                                <li>核心字段（库存SKU、最后入库时间、库存总量等）提取时，若字段缺失则标记为空，确保数据行完整性</li>
+                                <li>正则表达式过滤关键词时，编译正则表达式提升效率，捕获正则匹配异常，避免特殊字符导致的过滤失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：标准化开发明细表生成 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：标准化开发明细表生成</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>Excel工作簿创建与保存时，检测路径有效性，路径无效则自动创建，保存失败（权限/磁盘满）则抛出异常并记录日志</li>
+                                <li>写入Excel公式时，按行号动态生成单元格引用，避免固定行号导致的公式错误，捕获公式语法异常并填充空值</li>
+                                <li>日期列设置number_format为yyyy-mm-dd，捕获格式设置异常，确保日期显示标准化</li>
+                                <li>表头样式（字体、填充、对齐）设置时，捕获样式配置异常，保留默认样式确保明细表结构完整</li>
+                                <li>列宽配置时，按固定列表长度循环设置，避免列数不匹配导致的索引越界异常</li>
+                                <li>数据行写入时，捕获单元格写入异常，记录异常SKU并跳过，继续处理其他数据，确保数据最大化处理</li>
+                                <li>工作簿使用后强制调用close方法释放文件占用，捕获关闭异常并记录日志，避免后续文件操作失败</li>
+                                <li>结果文件生成后，校验文件是否存在，不存在则抛出「明细表生成失败」异常，确保处理结果有效</li>
+                                <li>全局变量template_path赋值时，确保文件路径正确，避免后续模块调用时路径无效</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：马帮ERP开发SKU数据提取规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：马帮ERP开发SKU数据提取规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>提取1类核心数据：开发员蒋新悦的全量库存SKU数据，从马帮ERP库存列表页面提取，为开发提成基础数据核心来源，支持500条/页分页提取</li>
+                                <li>提取适配规则：适配马帮500条/页分页限制，自动计算数据总条数与总页数，按页数批量提取，确保数据不丢失</li>
+                                <li>筛选条件规则：固定按「开发员=蒋新悦、SKU状态=全部」筛选，确保数据归属准确，覆盖所有状态的开发SKU</li>
+                                <li>数据格式规则：提取后以字典格式存储，键为SKU，值为包含基础信息的子字典，确保数据结构统一，便于后续处理</li>
+                                <li>核心字段规则：必须包含状态、创建人员、开发员、创建时间、库存SKU、库存SKU中文名称、库存总量、在途总量、供应商名称等基础字段</li>
+                                <li>数据校验规则：提取每条数据后校验核心SKU字段是否存在，不存在则跳过，确保数据有效性</li>
+                                <li>提取路径规则：数据暂存于内存数据字典，不生成中间文件，直接传递至下一模块，提升处理效率</li>
+                                <li>分页处理规则：按总页数循环提取，单页提取失败则记录日志并重新提取，确保全量数据完整性</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：海仓系统最后入库时间补充规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：海仓系统最后入库时间补充规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>补充1类核心字段：最后入库时间，从海仓系统按SKU精准查询，为时间指标计算的核心基础字段</li>
+                                <li>查询匹配规则：以马帮提取的SKU为唯一匹配键，实现跨系统数据精准联动，确保字段归属正确</li>
+                                <li>数据传输规则：海仓查询结果直接补充至马帮数据字典的对应SKU子字典中，保持数据结构统一</li>
+                                <li>空值处理规则：若海仓系统无对应SKU的最后入库时间，该字段填充为空字符串，不影响后续数据处理</li>
+                                <li>查询效率规则：按SKU批量查询，减少页面操作次数，提升数据补充效率，避免频繁请求导致的系统限制</li>
+                                <li>格式标准化规则：补充的最后入库时间统一为字符串格式，便于后续Excel写入与公式计算</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：多源数据整合与过滤规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：多源数据整合与过滤规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>整合来源：马帮ERP基础SKU数据+海仓系统最后入库时间字段，形成完整的开发提成基础数据字典</li>
+                                <li>过滤规则：按QM/PH/ID/MY关键词过滤SKU，大小写兼容，仅保留含目标关键词的SKU数据</li>
+                                <li>过滤维度：以库存SKU字段为过滤对象，使用正则表达式实现精准匹配，避免误过滤/漏过滤</li>
+                                <li>字段顺序规则：整合后的数据按明细表表头字段顺序提取值列表，确保Excel写入时列序正确</li>
+                                <li>无效数据过滤：自动过滤SKU为空、核心字段缺失的无效数据，确保进入明细表的数据完整有效</li>
+                                <li>数据结构规则：过滤后转换为二维列表格式，每行对应一条SKU数据，每列对应一个表头字段，便于Excel批量写入</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：标准化开发明细表生成规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：标准化开发明细表生成规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>文件格式：固定为XLSX，兼容WPS/Excel 2016+，确保开发/财务部门可正常打开、编辑、计算，无格式兼容问题</li>
+                                <li>文件命名规则：「产品开发明细表_毫秒时间戳.xlsx」，包含唯一时间标识，确保文件唯一性，避免覆盖</li>
+                                <li>存储路径：固定为「{Output_folder}/处理完成/{毫秒级时间戳文件夹}」，标准化路径归档，支持结果文件快速定位</li>
+                                <li>表头规则：固定19大核心字段，列序不可调整，字段名称不可修改，确保明细表格式统一：状态、创建人员、开发员、创建时间、库存SKU、库存SKU中文名称、库存总量、在途总量、供应商名称、最后入库时间、期限（1-6月5%）、到期时间（1-6月）、剩余天数（1-6月）、到期提醒（1-6月）、期限（7-12月1%）、到期时间（7-12月）、剩余天数（7-12月）、到期提醒（7-12月）、备注</li>
+                                <li>公式规则：到期时间、剩余天数、到期提醒列自动写入Excel公式，公式为跨单元格动态引用，支持修改基础数据后实时重算</li>
+                                <li>格式规则：到期时间列统一设置为yyyy-mm-dd日期格式，剩余天数列为数值格式，到期提醒列为文本格式</li>
+                                <li>样式规则：表头固定为蓝色背景（#4472C4）、白色粗体、居中对齐；列宽按字段长度固定配置，不可随意修改</li>
+                                <li>数据写入规则：基础数据直接写入单元格，公式列动态生成写入，原始数据与计算公式分离，便于人工核对与修改</li>
+                                <li>权限规则：生成的明细表保留读写权限，支持开发/财务部门后续编辑、补充备注、修改基础数据，不设置加密/保护</li>
+                                <li>归档规则：明细表为最终结果文件，单独存储于毫秒级唯一文件夹，无其他中间文件，方便后续追溯与查询</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理与路径操作，不支持Linux/Mac系统）</li>
+                        <li>浏览器：Google Chrome（任意版本），支持马帮ERP、海仓系统登录访问、多页面加载、元素定位，需开启最大化窗口模式</li>
+                        <li>ERP管理系统：马帮ERP（mabangerp.com）最新版，支持库存SKU列表查询、开发员筛选、500条/页分页，需保证系统页面无改版</li>
+                        <li>仓储管理系统：海仓系统（网页版），支持SKU精准查询、最后入库时间查看，需保证系统页面无改版</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持XLSX格式、公式计算、样式设置、无锁文件读写，推荐WPS Office）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持数据处理、自动化操作、Excel读写，建议3.9~3.11版本）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、窗口管理、元素定位核心能力，需配套影刀客户端）</li>
+                        <li>存储服务：网络共享存储/本地磁盘（支持多级文件夹创建、XLSX文件写入，需保证磁盘空间充足）</li>
+                        <li>网络环境：稳定的网络连接，可正常访问马帮ERP、海仓系统，无代理限制、无网络超时，建议专线网络</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>自动化操作：xbot、xbot_visual（影刀核心库，网页操作、图像识别、窗口管理、进程管理，需与影刀客户端版本匹配）</li>
+                        <li>数据处理：pandas（数据过滤、格式处理，支持Excel读写，建议1.5+版本）、numpy（数值运算，可选）</li>
+                        <li>Excel操作：openpyxl（XLSX文件创建、写入、公式设置、样式配置，支持Excel 2007+格式，建议3.0+版本）、xlrd（Excel文件读取，兼容旧格式）</li>
+                        <li>Windows交互：win32com.client（WPS/Excel底层操作，可选）、psutil（进程管理，可选）</li>
+                        <li>文件操作：os（路径处理、文件夹创建、进程调用，Python内置）、shutil（文件操作，Python内置）</li>
+                        <li>正则处理：re（内置，指定关键词SKU过滤、字符串匹配）</li>
+                        <li>时间处理：datetime（内置，时间戳生成、日期计算）、time（内置，延时操作、毫秒数获取）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录，影刀内置）、traceback（内置，异常堆栈信息捕获，便于问题定位）</li>
+                        <li>窗口操作：xbot.win32（内置，窗口激活、键盘指令、鼠标操作、进程终止）</li>
+                        <li>数值计算：math（内置，分页总页数计算、向上取整，适配马帮500条/页限制）</li>
+                        <li>图像识别：xbot_visual.image（影刀内置，马帮加载状态检测）</li>
+                        <li>扩展工具：xbot_extensions（影刀扩展库，马帮/海仓登录、弹窗处理）</li>
+                        <li>其他工具：pyautogui（模拟操作，可选）、PIL/io（图像处理，可选）、gc（垃圾回收，内置）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>马帮ERP：拥有「登录/库存管理/库存列表/高级筛选/开发员筛选」权限，可按开发员查询SKU数据、查看全量库存信息，无数据查看限制</li>
+                        <li>海仓系统：拥有「登录/SKU查询/库存信息/入库记录」权限，可按SKU精准查询最后入库时间，无操作次数限制</li>
+                        <li>存储服务：共享存储/本地磁盘的「读/写/新建/删除」权限，可创建多级子文件夹并写入/编辑/删除XLSX文件，无磁盘配额限制</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS/Chrome残留进程）、允许os.system调用系统命令，无系统权限限制</li>
+                        <li>浏览器权限：允许Chrome最大化启动、允许同时打开多个窗口、允许非模拟点击/输入，支持影刀RPA插件化运行，无浏览器安全限制</li>
+                        <li>文件权限：允许读取/写入/编辑/保存XLSX格式文件，无文件加密/保护限制，生成的文件可被多用户访问/编辑</li>
+                        <li>WPS/Excel权限：允许修改单元格样式/公式/格式、允许格式设置，无宏禁用限制，支持openpyxl调用</li>
+                        <li>影刀权限：拥有影刀RPA「运行流程/调用模块/访问全局变量/操作文件」权限，可正常调用xbot/xbot_visual库，无功能限制</li>
+                        <li>网络权限：允许访问外网（马帮ERP、海仓系统），无防火墙/网关限制，允许页面加载、元素定位，无网络带宽限制</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：Output_folder（输出根路径）、login_info（马帮/海仓登录信息）、retry_times（重试次数）、template_path（明细表路径）</li>
+                        <li>自定义工具模块：tools.py（提供get_time等时间处理方法，毫秒级时间戳生成、日期格式转换）</li>
+                        <li>自定义业务类：Maban（马帮ERP操作封装，登录、登出、数据提取、加载状态检测）、set_WorkBook（Excel操作封装，预留扩展）</li>
+                        <li>通用工具类：CommonUtil（静态类，封装带重试的元素点击方法，提供窗口激活/元素容错能力，禁止实例化，提升页面操作成功率）</li>
+                        <li>自定义异常类：BaseError（基础异常类）、FileDownLoadError（文件下载异常类），支持异常信息自定义与日志联动</li>
+                        <li>影刀扩展活动：mb_close_box（马帮弹窗关闭）、login（马帮/海仓登录/登出），需提前配置并启用</li>
+                        <li>图像资源：马帮「加载中」图像资源，用于xbot_visual.image加载状态检测，需提前配置在影刀资源库</li>
+                        <li>元素定位符：马帮/海仓系统页面元素定位符（mb_/hc_前缀），需与系统页面元素保持一致，页面改版后需同步更新</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有点击事件、图标旋转、全部联动问题 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（修复单个步骤无点击问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板，修复无联动问题）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板，修复无联动问题）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类（修复图标初始状态异常）
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>

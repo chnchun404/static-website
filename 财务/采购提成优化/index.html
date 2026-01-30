@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>财务采购提成优化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        primaryLight: '#E8F3FF',
+                        primaryDark: '#0E42CC',
+                        secondary: '#0E2B8A',
+                        light: '#F9FBFF',
+                        dark: '#1D2129',
+                        gray: '#86909C',
+                        grayLight: '#F0F2F5',
+                        grayBorder: '#E5E6EB'
+                    },
+                    fontFamily: {
+                        sans: ['Microsoft YaHei', 'PingFang SC', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 2px 12px 0 rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .collapse-item {
+                border-bottom: 1px solid theme('colors.grayBorder');
+            }
+            /* 通用折叠面板展开样式 - 提升优先级确保生效 */
+            .collapse-header.active + .collapse-content {
+                max-height: 2000px !important;
+                opacity: 1 !important;
+                padding-top: 1rem !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+            .collapse-content {
+                max-height: 0 !important;
+                opacity: 0 !important;
+                transition: all 0.4s ease-in-out !important;
+                overflow: hidden !important;
+                padding-top: 0 !important;
+            }
+            .step-card {
+                border-left: 3px solid theme('colors.primaryLight');
+                padding-left: 1rem;
+                margin-bottom: 1.5rem;
+                position: relative;
+            }
+            .step-card::before {
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                background: linear-gradient(to bottom, theme('colors.primary'), transparent);
+                opacity: 0.3;
+            }
+            .table-hover-row {
+                transition: background-color 0.2s ease;
+            }
+            /* 折叠图标旋转动画 - 绑定active类，确保交互反馈 */
+            .collapse-header i.fa-chevron-down {
+                transition: transform 0.3s ease-in-out !important;
+            }
+            .collapse-header.active i.fa-chevron-down {
+                transform: rotate(180deg) !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans min-h-screen">
+    <!-- 页面头部 -->
+    <header class="py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-primaryLight">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-[clamp(22px,4vw,32px)] font-bold text-secondary mb-3">
+                财务采购提成优化-自动化处理流程
+            </h1>
+            <p class="text-gray text-base sm:text-lg max-w-3xl mx-auto">
+                财务采购单价/提成优化自动化核对 | 石墨文档核心表导出 · 马帮ERP采购记录批量导出 · 重复SKU自动识别 · 采购单价含运费/红包自动计算 · 新品/自主优化双类型核对 · 标准化优化核对模板自动生成
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+        <!-- 板块1：业务背景 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-bullseye text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">一、业务背景</h2>
+            </div>
+            <!-- 实施目的 -->
+            <div class="pl-12 text-base leading-relaxed text-dark/85 mb-6">
+                <h3 class="font-medium text-dark mb-2">1.1 实施目的</h3>
+                <p>财务部门需完成<b>采购单价/提成优化</b>自动化核对与标准化模板处理，核心是从<b>石墨文档</b>导出新品优化、采购自主优化两大核心表，通过<b>马帮ERP</b>按SKU批量导出全年采购记录（适配马帮500条批量查询限制），整合多源数据后完成<b>重复SKU自动识别、采购单价含运费/红包自动核算、新品/自主优化双类型数据智能核对</b>，按月份批量生成标准化采购提成优化核对模板（含新品优化原表、采购自主优化原表、采购记录、月份优化核对4大核心Sheet），实现SKU采购数据与优化数据自动匹配、采购单价（含运费/红包/平均运费）自动计算、重复优化SKU按最新日期筛选、优化提成自动核算，自动标记数据缺失、单价异常、采购记录未匹配等异常情况，解决人工核对效率低、马帮批量查询受限、重复SKU未区分、采购单价未含附加费用、双类型优化核对标准不统一、异常数据无统一标记等痛点。</p>
+                <p class="mt-2">人工完成采购提成优化核对工作，存在<b>马帮批量查询500条限制、重复SKU手动筛选、采购单价未含运费/红包、新品/自主优化核对逻辑不统一、附加费用手动分摊、异常数据无快速标记、模板样式混乱</b>等痛点，通过自动化流程实现多源数据一键导出整合、重复SKU自动归类、采购单价含附加费用智能计算、双类型优化标准化核对、异常数据自动标记、提成公式自动写入，提升采购提成核对的准确性与效率，实现一年一次模板采购记录维护的标准化管理。</p>
+                <p class="mt-2"><b>核心特殊点</b>：适配马帮ERP批量查询最大500条限制，自动分批次导出采购记录；采购单价自动整合运费（平均分摊）、红包金额（平均分摊），还原实际采购成本；重复优化SKU自动筛选最新优化记录，避免重复核算；按<b>前两月时间范围</b>筛选石墨优化数据，确保核对数据的时效性。</p>
+            </div>
+            <!-- 基本信息 -->
+            <div class="pl-12 overflow-x-auto">
+                <h3 class="font-medium text-dark mb-2">1.2 基础信息</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">流程名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">所属部门</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">操作频率</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">核心目标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">财务采购提成优化</td>
+                            <td class="p-3 border border-grayBorder">财务部</td>
+                            <td class="p-3 border border-grayBorder">双月执行（手动触发，取前两月数据）</td>
+                            <td class="p-3 border border-grayBorder">石墨文档核心表导出、马帮ERP采购记录分批次导出、重复SKU自动识别、采购单价含运费/红包自动计算、新品/自主优化双类型核对、标准化优化核对模板生成、提成公式自动写入、异常数据自动标记、一年一次模板采购记录维护</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 板块2：功能模块 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-desktop text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">二、功能模块</h2>
+            </div>
+            <!-- 应用系统 -->
+            <div class="pl-12 mb-6">
+                <h3 class="font-medium text-dark mb-2">2.1 涉及应用系统</h3>
+                <p class="text-sm text-dark/80 mb-3">系统类型：浏览器网页/ERP管理系统/自动化工具/办公软件/共享存储服务 | 马帮500条批量查询适配 | 重复SKU自动识别 | 采购单价含附加费用自动计算</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-primaryLight text-left">
+                                <th class="p-3 border border-grayBorder font-medium text-primary">系统名称</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">类型</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">需账号密码</th>
+                                <th class="p-3 border border-grayBorder font-medium text-primary">核心用途</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">石墨文档</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">新品优化表、采购自主优化表导出、按前两月时间范围筛选优化数据、重复SKU数据源提取</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">马帮ERP</td>
+                                <td class="p-3 border border-grayBorder">浏览器网页（mabangerp.com）</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">全年采购记录批量导出、适配500条查询限制分批次导出、按SKU精准筛选采购数据、采购状态过滤（排除已作废）</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">Python运行环境</td>
+                                <td class="p-3 border border-grayBorder">后台运行</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">跨系统逻辑执行、数据清洗、重复SKU识别、采购单价含附加费用计算、Excel模板生成、公式写入、异常数据标记</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">WPS/Excel</td>
+                                <td class="p-3 border border-grayBorder">客户端</td>
+                                <td class="p-3 border border-grayBorder">无</td>
+                                <td class="p-3 border border-grayBorder">标准化模板编辑、多Sheet管理、采购提成公式计算、异常数据标记、结果文件保存</td>
+                            </tr>
+                            <tr class="table-hover-row hover:bg-primaryLight/50">
+                                <td class="p-3 border border-grayBorder">共享存储服务</td>
+                                <td class="p-3 border border-grayBorder">网络共享/本地磁盘</td>
+                                <td class="p-3 border border-grayBorder">Yes</td>
+                                <td class="p-3 border border-grayBorder">导出文件存储、标准化路径归档、多源数据整合、模板文件读取、结果文件保存</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- 模块概览 -->
+            <div class="pl-12 overflow-x-auto mb-6">
+                <h3 class="font-medium text-dark mb-2">2.2 核心模块概览</h3>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-primaryLight text-left">
+                            <th class="p-3 border border-grayBorder font-medium text-primary">模块名称</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">涉及平台/技术</th>
+                            <th class="p-3 border border-grayBorder font-medium text-primary">输出/处理结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">环境清理与路径初始化</td>
+                            <td class="p-3 border border-grayBorder">Python+系统命令+os模块</td>
+                            <td class="p-3 border border-grayBorder">无（环境准备，标准化存储路径创建，WPS/Chrome残留进程强制清理，毫秒级唯一文件夹生成，按处理结果分类归档）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">石墨文档登录与核心表导出</td>
+                            <td class="p-3 border border-grayBorder">石墨文档+Python+xbot+xbot_visual+pandas</td>
+                            <td class="p-3 border border-grayBorder">XLSX（新品优化表、采购自主优化表，按前两月时间范围筛选，时间格式标准化处理，优化人名称清洗）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">马帮ERP登录与采购记录导出</td>
+                            <td class="p-3 border border-grayBorder">马帮ERP+Python+xbot+xbot_visual+math</td>
+                            <td class="p-3 border border-grayBorder">XLSX（全年采购记录，适配500条限制分批次导出，按SKU精准筛选，排除已作废采购单，支持3000+条大数据量分页导出）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">多源数据整合与清洗</td>
+                            <td class="p-3 border border-grayBorder">Python+pandas+openpyxl+datetime</td>
+                            <td class="p-3 border border-grayBorder">数据字典（整合石墨优化数据、马帮采购数据，重复SKU自动识别归类，采购记录按状态过滤，核心字段格式标准化）</td>
+                        </tr>
+                        <tr class="table-hover-row hover:bg-primaryLight/50">
+                            <td class="p-3 border border-grayBorder">标准化优化核对模板生成</td>
+                            <td class="p-3 border border-grayBorder">Python+openpyxl+pandas+win32com</td>
+                            <td class="p-3 border border-grayBorder">XLSX（标准化核对模板，含4大核心Sheet，新品/自主优化双类型核对，采购单价含附加费用自动计算，提成公式自动写入，异常数据精准标记）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 核心能力 -->
+            <div class="pl-12">
+                <h3 class="font-medium text-dark mb-2">2.3 核心自动化能力</h3>
+                <ul class="list-disc pl-6 text-sm space-y-2 text-dark/85">
+                    <li>流程启动前自动清理环境，强制终止WPS.exe残留进程（taskkill /F /T），关闭所有Chrome窗口，避免进程占用导致文件/页面操作失败</li>
+                    <li>按「处理完成/毫秒级文件夹/石墨/采购历史」自动创建标准化存储路径，所有导出/处理文件按层级分类归档，解决文件存储混乱问题，支持结果文件快速定位</li>
+                    <li>石墨文档自动登录（含点选验证码自动处理），登录前检测登录状态，已登录则直接跳过，提升执行效率；登录失败支持可配置重试次数，超时抛出明确异常</li>
+                    <li>石墨核心表精准导出，仅下载新品优化、采购自主优化目标Sheet，按前两月时间范围筛选优化数据，自动清洗优化人名称（移除换行符）、标准化时间格式（Date类型）</li>
+                    <li>适配马帮ERP批量查询500条限制，自动按SKU列表长度分批次导出采购记录，支持3000+条大数据量分页导出，单页导出失败自动重试，确保数据完整性</li>
+                    <li>马帮采购记录精准筛选，按SKU批量搜索、排除已作废采购单，支持全年采购数据导出，采购记录核心字段（单价、运费、红包、数量）格式标准化，便于后续计算</li>
+                    <li>重复SKU自动识别与归类，从石墨优化数据中提取SKU列表，自动标记重复SKU并归类，采购自主优化中重复SKU仅保留最新日期的优化记录，避免重复核算</li>
+                    <li>采购单价智能核算，自动整合采购单价+平均运费（运费按采购数量分摊）+平均红包金额（红包按采购数量分摊），还原实际采购成本，支持有/无运费/红包四种场景</li>
+                    <li>新品/自主优化双类型标准化核对，针对两类优化制定差异化核对逻辑，自主优化核对新旧单价/日期，新品优化核对开发单价/实际采购单价，确保核对标准统一</li>
+                    <li>优化日期容错处理，采购自主优化中旧优化日期与采购记录日期不一致时，自动浮动±1天重新匹配，提升数据匹配成功率，避免因日期偏差导致核对失败</li>
+                    <li>红包金额智能提取，从采购订单备注中自动提取红包金额，支持「红包」关键字识别，未提取到金额则自动标记异常，方便人工兜底核对</li>
+                    <li>多源数据自动整合，将石墨优化数据、马帮采购数据整合为统一数据字典，按SKU建立关联关系，支持跨数据源快速匹配，提升数据处理效率</li>
+                    <li>标准化Excel模板自动生成，加载预设模板并写入整合后数据，自动修改核对表标题（按月份），复刻模板样式，确保所有核对表样式统一</li>
+                    <li>采购提成公式自动写入，在核对表中自动生成「单价差额=本次单价-上次单价」「提成金额=采购数量×单价差额」公式，无需人工编写，确保计算准确性</li>
+                    <li>异常数据精准标记与分类，针对SKU缺失、采购记录未匹配、单价非数值、红包金额提取失败等异常情况，生成明确异常提示，方便财务快速定位问题</li>
+                    <li>核心操作重试机制，石墨登录、马帮数据筛选、文件导出、元素点击等核心操作均支持可配置重试次数（retry_times），提升流程稳定性</li>
+                    <li>大数据量处理适配，马帮采购记录支持3000+条分页导出，单批500条自动拆分，确保大数据量下流程不中断，数据不丢失</li>
+                    <li>采购状态过滤，自动排除马帮采购记录中「已作废」状态的单据，避免无效数据影响核对结果，确保采购数据的有效性</li>
+                    <li>一年一次模板采购记录维护，支持采购记录模板的标准化管理，无需频繁修改模板结构，仅需年度维护即可适配日常核对需求</li>
+                    <li>结果文件标准化命名，按「月份_采购提成优化明细.xlsx」命名结果文件，包含处理月份，确保文件识别性，方便财务按月份归档与查询</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 板块3：异常处理机制 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exclamation-triangle text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">三、异常处理机制</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn">
+                    <span class="font-medium text-primary">展开/收起所有异常处理规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 步骤1：环境清理与路径初始化 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤1：环境清理与文件路径初始化</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>执行taskkill终止WPS.exe进程、xbot.web.close_all关闭Chrome所有窗口时，捕获所有异常不终止流程，避免进程不存在导致启动失败</li>
+                                <li>标准化存储路径（处理完成/毫秒级文件夹/石墨/采购历史）通过os.makedirs+exist_ok=True实现自动创建与容错，无需提前手动创建</li>
+                                <li>全局变量核心路径（Output_Folder/SUMMARY_TEMPLATE/login_info/retry_times）未配置则直接抛出异常，避免后续文件操作因路径无效而失败</li>
+                                <li>基于当前时间生成毫秒级唯一文件夹，避免同批次处理文件覆盖，确保文件存储唯一性</li>
+                                <li>路径拼接时自动处理系统路径分隔符，兼容Windows系统，避免因路径分隔符错误导致文件读写失败</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：石墨文档登录与核心表导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤2：石墨文档登录与核心表导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>石墨文档打开时最多重试指定次数（retry_times），每次重试包含页面重载，超时则抛出「石墨文档打开途中网络加载超时」明确异常，便于问题定位</li>
+                                <li>登录前检测是否已登录（通过登录成功头像元素），已登录则直接跳过登录流程，避免重复操作；登录失败（验证码/账号密码错误）则重试指定次数，超时抛出异常</li>
+                                <li>石墨核心表导出时最多重试指定次数，每次重试后尝试关闭「另存为」弹窗，避免弹窗遮挡导致导出失败，导出后强制校验文件存在性</li>
+                                <li>点选验证码处理失败时，自动重试验证码识别流程，多次失败则抛出「登录失败，验证码识别不通过或检查账户或者密码是否有变更」异常</li>
+                                <li>石墨导出文件后校验文件数量，目标路径下文件数量少于2个（新品优化+采购自主优化）则抛出「路径有文件缺失」异常，终止后续处理</li>
+                                <li>时间列格式转换时（pd.to_datetime），使用errors='coerce'容错，无法转换的时间值置为NaT，后续自动过滤，避免格式错误导致数据处理中断</li>
+                                <li>优化人名称清洗时（移除换行符），捕获字符串处理异常，记录日志并保留原始名称，不影响后续数据处理</li>
+                                <li>按前两月时间范围筛选数据时，无符合条件数据则对应Sheet数据为空，不抛出异常，仅跳过该Sheet数据处理</li>
+                                <li>页面元素点击（帐密登录、登录按钮等）使用CommonUtil封装的带重试点击方法，元素未显示则重试指定次数，超时则抛出异常，确保操作有效</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：马帮ERP登录与采购记录导出 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤3：马帮ERP登录与采购记录导出</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>马帮ERP登录前先执行退出登录操作，确保登录环境干净，避免登录状态异常导致的操作失败；登录失败则抛出异常，终止流程</li>
+                                <li>马帮数据加载状态检测最长300秒，持续检测「加载中」图像是否存在，超过指定时长则抛出「加载失败」异常，避免流程卡死在加载状态</li>
+                                <li>适配马帮500条批量查询限制，SKU列表长度超过500时自动分批次导出，单批处理失败则记录日志并继续下一批，确保整体流程不中断</li>
+                                <li>马帮采购记录分页导出时（3000+条），单页导出失败则自动重试，页面切换后检测「操作成功」弹出框，确保页面切换有效</li>
+                                <li>SKU批量搜索时，输入框内容写入使用simulative=False，确保实际内容写入输入框，避免模拟输入导致的内容缺失</li>
+                                <li>导出文件下载后强制校验存在性，文件未生成则标记导出失败并重试，多次失败则抛出异常并记录详细堆栈信息</li>
+                                <li>采购记录导出时自动取消「合并共有项」复选框，避免数据合并导致的采购数量/单价错误，确保原始数据完整性</li>
+                                <li>页面元素（导入/出按钮、导出按钮等）点击时，使用CommonUtil带重试点击，元素未显示则重试指定次数，超时则抛出异常</li>
+                                <li>批量导出时按总批次数循环处理，单批处理失败则捕获异常并记录日志，继续下一批处理，确保数据最大化获取</li>
+                                <li>导出文件命名包含批次号/分页号，避免同批次/同分页文件覆盖，确保文件存储唯一性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：多源数据整合与清洗 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤4：多源数据整合与清洗</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>从石墨导出数据中提取SKU列表时，若SKU列表长度小于1则抛出「无法找到任何SKU记录」异常，终止后续处理，避免无数据源导致的空处理</li>
+                                <li>重复SKU识别时，自动将重复SKU归类到单独列表，不影响正常SKU处理，采购自主优化中重复SKU仅保留最新日期记录，避免重复核算</li>
+                                <li>马帮采购记录整合时，自动转换为Excel97格式，兼容pandas读取，读取失败则抛出「采购历史记录整合失败」异常，终止处理</li>
+                                <li>采购记录读取时使用dtype=object，避免数值型字段自动转换导致的精度丢失，空值统一填充为空字符串，确保数据格式统一</li>
+                                <li>自动过滤马帮采购记录中「已作废」状态的单据，避免无效数据进入后续核对流程，确保采购数据的有效性</li>
+                                <li>数据整合时捕获DataFrame操作异常，记录详细堆栈信息并抛出明确异常，便于问题定位，避免数据混乱</li>
+                                <li>核心字段（SKU、采购单价、运费、数量、日期）格式转换时，捕获类型转换异常，记录日志并标记为异常数据，不中断整体流程</li>
+                                <li>多批次马帮采购文件整合时，单个文件读取失败则抛出异常，确保采购数据的完整性，避免部分数据缺失导致核对结果错误</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5：标准化优化核对模板生成 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">步骤5：标准化优化核对模板生成</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <p class="mb-2 font-medium text-dark/80">异常处理规则：</p>
+                            <ul class="list-disc pl-6 space-y-1 mb-3 text-sm">
+                                <li>模板文件（SUMMARY_TEMPLATE）加载失败则抛出异常，终止模板生成流程，确保使用标准模板进行数据写入</li>
+                                <li>新品优化/采购自主优化数据写入模板时，捕获单元格写入异常，抛出明确模块异常（如【新品优化】数据源写入过程中发生异常），便于问题定位</li>
+                                <li>SKU/单价/日期等核心字段缺失时，自动标记异常并写入明确提示（如「请检查采购自主优化表中是否填写了SKU、新旧优化单价、新旧优化日期」），不中断后续数据处理</li>
+                                <li>按SKU匹配采购记录时，无匹配采购记录则自动标记异常（如「未在采购记录表中查询到任何关于XXX采购信息」），并跳过该SKU的后续计算，避免数据错误</li>
+                                <li>采购自主优化旧单价匹配时，精确日期匹配失败则自动浮动±1天重新匹配，仍失败则标记异常，提升匹配成功率</li>
+                                <li>单价字段转换为浮点型时，非数值类型则自动标记异常（如「请检查采购所填写的新旧单价，是否有异常」），避免计算错误</li>
+                                <li>红包金额提取时，识别到「红包」关键字但未提取到金额则自动标记异常（如「备注中存在红包的情况，但无法获取到具体金额」），方便人工兜底</li>
+                                <li>采购数量为0时，自动标记异常并跳过该记录的提成计算，避免除以0错误导致的流程中断</li>
+                                <li>模板Sheet重命名时，捕获命名异常，记录日志并使用默认名称，确保模板结构完整</li>
+                                <li>提成公式写入时，捕获公式语法异常，记录日志并填充空值，确保模板单元格不出现公式错误</li>
+                                <li>结果文件保存时，检测路径有效性，路径无效则自动创建，保存失败（权限/磁盘满）则抛出异常并记录日志</li>
+                                <li>模板文件保存后自动关闭，释放文件占用，避免后续文件操作失败；关闭失败则捕获异常，记录日志</li>
+                                <li>双类型优化数据处理时，单个类型处理失败则捕获异常，记录日志并继续处理另一类型，确保数据最大化处理</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块4：数据传输规范 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-exchange text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">四、数据传输规范</h2>
+            </div>
+            <div class="pl-12 space-y-3">
+                <!-- 全部展开/收起按钮 -->
+                <div class="collapse-header flex justify-between items-center py-3 px-4 bg-primaryLight/50 rounded-lg cursor-pointer transition-all duration-300 hover:bg-primaryLight/80" id="allCollapseBtn2">
+                    <span class="font-medium text-primary">展开/收起所有数据传输规则</span>
+                    <i class="fa fa-chevron-down text-xs text-primary"></i>
+                </div>
+
+                <!-- 规则1：石墨文档文件导出与处理规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则1：石墨文档文件导出与处理规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>固定导出2类核心表：新品优化表、采购自主优化表，对应石墨文档固定链接（https://shimo.im/sheets/Ee32mazMYVTD6NA2/XKLnC），为优化数据核心来源，仅导出目标Sheet不下载全文档</li>
+                                <li>导出格式固定为XLSX，文件命名规则为「Sheet名称.xlsx」（如新品优化.xlsx），与石墨Sheet名称一致，确保文件名唯一性与识别性，禁止修改导出文件名</li>
+                                <li>导出路径固定为「{Output_Folder}/处理完成/{毫秒级文件夹}/石墨」，所有石墨导出文件统一归档，方便后续读取与处理，路径自动创建无需手动干预</li>
+                                <li>数据筛选规则：按「前两月时间范围」筛选优化数据，新品优化按「优化时间」、采购自主优化按「日期」筛选，仅保留指定时间范围内的数据，确保数据时效性</li>
+                                <li>时间格式规则：优化时间/日期列统一转换为Python Date类型，移除时分秒，确保时间格式标准化，便于后续与马帮采购记录日期匹配</li>
+                                <li>数据清洗规则：优化人名称自动移除换行符（\n），空值统一填充为空字符串，核心字段（SKU、单价、日期）保留原始值，不做额外修改</li>
+                                <li>文件校验规则：导出后校验目标路径下文件数量，少于2个则抛出「文件缺失」异常，终止后续处理，确保核心数据源完整</li>
+                                <li>SKU提取规则：从两类优化表中提取SKU列数据，自动去重生成SKU列表，重复SKU单独归类，作为马帮ERP采购记录查询的核心条件</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则2：马帮ERP采购记录导出与处理规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则2：马帮ERP采购记录导出与处理规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>导出1类核心数据：全年采购记录，按SKU精准筛选，排除「已作废」状态单据，为采购成本核算的核心来源，支持多批次/分页导出</li>
+                                <li>导出适配规则：适配马帮500条批量查询限制，SKU列表长度超过500时自动分批次导出，批次号纳入文件名，确保数据不丢失</li>
+                                <li>大数据量处理规则：采购记录超过3000条时自动分页导出，分页号纳入文件名，单页500条，确保大数据量下正常导出</li>
+                                <li>导出格式为XLSX，文件命名规则为「第X批导出_采购记录历史_（分页号）.xlsx」，包含批次号、数据类型、分页号（可选），确保唯一性，避免文件覆盖</li>
+                                <li>导出路径固定为「{Output_Folder}/处理完成/{毫秒级文件夹}/采购历史」，所有马帮采购记录统一归档，按批次号排序，方便后续整合，路径自动创建无需手动干预</li>
+                                <li>筛选条件规则：按「SKU批量搜索+全年时间范围+排除已作废」筛选，时间范围不做限制（导出全年数据），SKU为石墨优化表提取的去重列表</li>
+                                <li>数据处理规则：导出后自动转换为Excel97格式，使用pandas读取时dtype=object，避免数值字段精度丢失，空值填充为空字符串</li>
+                                <li>状态过滤规则：自动过滤「采购单状态=已作废」的单据，仅保留有效采购记录，确保采购数据的真实性与有效性</li>
+                                <li>核心字段规则：保留采购记录中SKU、采购单价、运费、采购数量、下单时间、订单备注、红包金额等核心字段，确保后续成本核算所需数据完整</li>
+                                <li>文件整合规则：多批次/分页导出文件通过pandas批量读取并整合为统一数据列表，按下单时间排序，确保数据顺序统一</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则3：基础模板文件传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则3：基础模板文件传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>模板源文件：固定使用全局变量「SUMMARY_TEMPLATE」指定的标准模板，格式为XLSX，包含4大核心Sheet：新品优化（原表）、采购自主优化（原表）、采购记录、X月优化核对，禁止修改源模板结构与样式</li>
+                                <li>模板存储路径：固定存储在全局变量配置的路径下，支持网络共享/本地磁盘，确保流程可正常读取，无读取权限则抛出异常</li>
+                                <li>Sheet结构规则：4大核心Sheet顺序不可调整，列名与列宽按标准模板定义，核心字段（SKU、单价、数量、日期）列位置固定，禁止修改</li>
+                                <li>模板复用规则：标准模板一年维护一次，日常核对仅需加载模板并写入数据，无需修改模板结构，确保核对标准统一</li>
+                                <li>模板加载规则：使用openpyxl.load_workbook加载模板，保留模板原有样式、公式、格式，确保生成的核对表与标准模板一致</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则4：优化核对结果文件传输规范 -->
+                <div class="collapse-item py-2">
+                    <div class="collapse-header flex justify-between items-center py-2 px-0 cursor-pointer group single-collapse-btn">
+                        <span class="font-medium text-dark group-hover:text-primary transition-colors">规则4：优化核对结果文件传输规范</span>
+                        <i class="fa fa-chevron-down text-xs text-gray group-hover:text-primary"></i>
+                    </div>
+                    <div class="collapse-content pl-2 text-gray">
+                        <div class="step-card">
+                            <ol class="list-decimal pl-6 space-y-1 text-sm">
+                                <li>结果文件格式：固定为XLSX，兼容WPS/Excel 2016+，确保财务部门可正常打开、编辑、计算，无格式兼容问题</li>
+                                <li>文件命名规则：「{月份}月_采购提成优化明细.xlsx」，包含处理月份（前两月的后一个月），确保文件按月份识别与归档，禁止修改生成后的文件名</li>
+                                <li>存储路径：固定为「{Output_Folder}/处理完成/{毫秒级文件夹}」，与石墨/采购历史文件同级，方便财务一次性获取所有相关文件</li>
+                                <li>Sheet组成规则：包含4大核心Sheet，在标准模板基础上更新：新品优化（原表）、采购自主优化（原表）、采购记录、{月份}月优化核对（动态重命名）</li>
+                                <li>数据写入规则：原表Sheet写入筛选后的石墨/马帮原始数据，核对Sheet写入整合后的核对数据+自动生成的提成公式，确保原始数据与核对结果分离</li>
+                                <li>公式规则：核对Sheet中J列（单价差额）、K列（提成金额）自动写入公式，公式为跨单元格引用，确保修改基础数据后公式可自动重算</li>
+                                <li>异常标记规则：核对Sheet最后一列（L列）为异常提示列，异常数据标红提示，正常数据标记「RPA核对完成」，确保异常数据快速定位</li>
+                                <li>样式规则：保留标准模板的字体、列宽、单元格格式，核心计算列（单价、差额、提成金额）保留数值格式（保留2位小数），确保显示统一</li>
+                                <li>权限规则：生成的结果文件保留读写权限，支持财务后续编辑、修改、补充，不设置加密/保护，方便人工兜底核对</li>
+                                <li>归档规则：结果文件与石墨导出文件、马帮采购记录文件同文件夹归档，确保单批次处理的所有文件集中存储，方便后续追溯与查询</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 板块5：系统依赖 -->
+        <section class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow duration-300">
+            <div class="flex items-center mb-4">
+                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                    <i class="fa fa-cogs text-primary"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-semibold text-dark">五、系统依赖</h2>
+            </div>
+            <div class="pl-12 space-y-4">
+                <!-- 环境依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.1 运行环境依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>操作系统：Windows 10/11 64位（需支持taskkill、os.system系统命令，用于进程清理与路径操作，不支持Linux/Mac系统）</li>
+                        <li>浏览器：Google Chrome（任意版本），支持石墨文档、马帮ERP登录访问、多页面加载、文件下载，需开启最大化窗口模式</li>
+                        <li>ERP管理系统：马帮ERP（mabangerp.com）最新版，支持SKU批量搜索、采购记录导出、分批次查询，需保证系统页面无改版</li>
+                        <li>办公软件：WPS Office 2021+/Microsoft Excel 2016+（支持XLSX格式、无锁文件读写、公式计算、格式设置，推荐WPS Office）</li>
+                        <li>运行时：Python 3.8+（需安装指定第三方库，支持数据处理、自动化操作、Excel读写，建议3.9~3.11版本）</li>
+                        <li>自动化框架：xbot/xbot_visual（影刀RPA框架，提供网页自动化、图像识别、窗口管理、元素定位、文件下载核心能力，需配套影刀客户端）</li>
+                        <li>存储服务：网络共享存储/本地磁盘（支持多级文件夹创建、XLSX文件写入、多用户访问，需保证磁盘空间充足）</li>
+                        <li>网络环境：稳定的网络连接，可正常访问石墨文档、马帮ERP，无代理限制、无网络超时，建议专线网络</li>
+                        <li>COM组件：需启用Windows COM组件支持，确保win32com可正常调用WPS/Excel，无组件禁用限制</li>
+                    </ul>
+                </div>
+                <!-- Python库依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.2 Python第三方库依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>自动化操作：xbot、xbot_visual（影刀核心库，网页操作、图像识别、窗口管理、文件下载、进程管理，需与影刀客户端版本匹配）</li>
+                        <li>数据处理：pandas（数据读取、清洗、筛选、合并，支持XLSX格式，建议1.5+版本）、numpy（数值运算、空值填充，建议1.24+版本）</li>
+                        <li>Excel操作：openpyxl（XLSX文件读写、样式设置、公式写入，支持Excel 2007+格式，建议3.0+版本）、xlrd（Excel文件读取，兼容旧格式）</li>
+                        <li>Windows交互：win32com.client（WPS/Excel底层操作，格式转换、弹窗屏蔽）、psutil（进程管理，可选）</li>
+                        <li>文件操作：os（路径处理、文件夹创建、进程调用，Python内置）、shutil（文件复制、重命名，Python内置）</li>
+                        <li>正则处理：re（内置，红包金额提取、字符串清洗、数字提取）</li>
+                        <li>时间处理：datetime、timedelta（内置，日期计算、格式转换、时间范围筛选）、time（内置，延时操作、毫秒数获取）</li>
+                        <li>日志与异常：xbot.app.logging（系统日志记录，影刀内置）、traceback（内置，异常堆栈信息捕获，便于问题定位）</li>
+                        <li>窗口操作：xbot.win32（内置，窗口激活、键盘指令、鼠标操作、进程终止）</li>
+                        <li>数值计算：math（内置，分批次计算、向上取整，适配马帮500条限制）</li>
+                        <li>图像识别：xbot_visual.image（影刀内置，马帮加载状态检测、验证码处理）</li>
+                        <li>扩展工具：xbot_extensions（影刀扩展库，验证码点选、人工模拟点击）</li>
+                    </ul>
+                </div>
+                <!-- 权限依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.3 权限依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>石墨文档：拥有新品优化表、采购自主优化表的「查看/导出/下载工作表」权限，可正常访问表格内容，无下载限制、无访问地域限制</li>
+                        <li>马帮ERP：拥有「登录/供应链/采购管理/高级搜索/批量导出」权限，可按SKU筛选采购记录、导出全年数据，无操作次数限制、无数据查看限制</li>
+                        <li>存储服务：共享存储/本地磁盘的「读/写/新建/删除」权限，可创建多级子文件夹并写入/编辑/删除XLSX文件，无磁盘配额限制</li>
+                        <li>系统权限：允许执行taskkill命令（终止WPS/Chrome残留进程）、允许os.system调用系统命令、允许COM组件初始化</li>
+                        <li>浏览器权限：允许Chrome最大化启动、允许同时打开多个窗口、允许非模拟点击/输入，支持影刀RPA插件化运行，无浏览器安全限制</li>
+                        <li>文件权限：允许读取/写入/编辑/保存XLSX格式文件，无文件加密/保护限制，生成的文件可被多用户访问/编辑，无文件锁定限制</li>
+                        <li>WPS/Excel权限：允许以无界面模式运行、允许修改单元格样式/公式/格式、允许格式转换，无宏禁用限制，支持openpyxl/win32com调用</li>
+                        <li>影刀权限：拥有影刀RPA「运行流程/调用模块/访问全局变量/操作文件」权限，可正常调用xbot/xbot_visual库，无功能限制</li>
+                        <li>网络权限：允许访问外网（石墨文档、马帮ERP），无防火墙/网关限制，允许文件下载/上传，无网络带宽限制</li>
+                    </ul>
+                </div>
+                <!-- 配置文件依赖 -->
+                <div class="bg-primaryLight/30 rounded-lg p-4">
+                    <h3 class="font-medium text-primary mb-2">5.4 配置文件与模块依赖</h3>
+                    <ul class="list-disc pl-6 text-sm space-y-1">
+                        <li>全局变量：glv（package.variables），核心参数：retry_times（重试次数）、Output_Folder（输出根路径）、SUMMARY_TEMPLATE（标准模板路径）、login_info（马帮登录信息）</li>
+                        <li>自定义工具模块：tools.py（提供get_time/get_two_months_ago_range/get_month_start_end等方法，时间处理、日期范围计算、红包金额提取）</li>
+                        <li>自定义业务类：Shimo（石墨文档操作封装，登录、核心表导出、数据筛选）、Maban（马帮ERP操作封装，登录、采购记录分批次导出）、set_WorkBook（模板生成封装，数据整合、核对、公式写入）</li>
+                        <li>通用工具类：CommonUtil（静态类，封装带重试的元素点击方法，提供窗口激活/元素容错能力，禁止实例化，提升页面操作成功率）</li>
+                        <li>标准模板文件：采购提成优化标准模板.xlsx，包含4大核心Sheet，为结果文件生成的基础，一年维护一次，禁止修改核心结构</li>
+                        <li>影刀扩展活动：mb_close_box（马帮弹窗关闭）、login（马帮登录/退出）、human_click（验证码点选处理），需提前配置并启用</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 折叠面板交互逻辑 - 修复所有点击事件、图标旋转、全部联动问题 -->
+    <script>
+        // 页面加载完成后初始化所有交互，确保DOM元素已完全加载
+        document.addEventListener('DOMContentLoaded', function() {
+            // 通用方法：切换单个面板状态（含active类切换、图标旋转）
+            const toggleSingleCollapse = (btn) => {
+                btn.classList.toggle('active');
+            };
+
+            // 通用方法：切换全部面板状态（联动单个面板+自身图标旋转）
+            const toggleAllCollapse = (allBtn, sectionSelector) => {
+                allBtn.classList.toggle('active');
+                const isActive = allBtn.classList.contains('active');
+                // 联动当前板块下所有单个折叠面板
+                const singleBtns = allBtn.closest(sectionSelector).querySelectorAll('.single-collapse-btn');
+                singleBtns.forEach(btn => {
+                    if (isActive) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            };
+
+            // 1. 绑定所有单个折叠面板的点击事件（修复单个步骤无点击问题）
+            const allSingleBtns = document.querySelectorAll('.single-collapse-btn');
+            allSingleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    toggleSingleCollapse(this);
+                });
+            });
+
+            // 2. 绑定异常处理机制板块「全部展开/收起」按钮（联动单个面板，修复无联动问题）
+            const allCollapseBtn = document.getElementById('allCollapseBtn');
+            if (allCollapseBtn) {
+                allCollapseBtn.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(3)');
+                });
+            }
+
+            // 3. 绑定数据传输规范板块「全部展开/收起」按钮（联动单个面板，修复无联动问题）
+            const allCollapseBtn2 = document.getElementById('allCollapseBtn2');
+            if (allCollapseBtn2) {
+                allCollapseBtn2.addEventListener('click', function() {
+                    toggleAllCollapse(this, 'section:nth-child(4)');
+                });
+            }
+
+            // 初始化：确保所有折叠图标初始状态为未旋转，无默认active类（修复图标初始状态异常）
+            document.querySelectorAll('.collapse-header').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
